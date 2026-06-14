@@ -1,0 +1,2297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>The Trading Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#0a1e0f;color:#f0dbb0;font-family:'Playfair Display',Georgia,serif;min-height:100vh;overscroll-behavior:none}
+#app{max-width:500px;margin:0 auto;padding:14px}
+.screen{display:none}
+.screen.active{display:block}
+.title{font-size:22px;color:#c49a22;letter-spacing:3px;text-align:center;margin-bottom:4px}
+.subtitle{font-size:12px;color:#7ab87a;font-style:italic;text-align:center;margin-bottom:20px}
+.card-box{background:#0e2918;border:1px solid #2d5a2d;border-radius:10px;padding:14px;margin-bottom:12px}
+label{font-size:10px;color:#7ab87a;letter-spacing:.5px;display:block;margin-bottom:4px;text-transform:uppercase}
+input,textarea{background:#132e1c;border:1px solid #2d5a2d;color:#f0dbb0;padding:9px;border-radius:6px;font-size:14px;font-family:inherit;width:100%}
+input:focus,textarea:focus{outline:none;border-color:#c49a22}
+input::placeholder,textarea::placeholder{color:#2d5a2d}
+.btn{background:#c49a22;color:#1a0800;border:none;padding:11px 22px;border-radius:6px;font-size:14px;font-family:inherit;cursor:pointer;width:100%;margin-top:8px;letter-spacing:.5px}
+.btn:hover{background:#d4aa32}
+.btn.sec{background:#1a4a28;border:1px solid #4a9a5a;color:#d0f0d0}
+.btn.sec:hover{background:#255f34;color:#fff}
+.btn.sm{padding:5px 13px;font-size:12px;width:auto}
+hr.div{border:none;border-top:1px solid #2d5a2d;margin:14px 0}
+.code-big{font-size:34px;letter-spacing:8px;color:#c49a22;text-align:center;background:#0e2918;border:2px solid #c49a22;border-radius:8px;padding:14px;margin:10px 0}
+.prow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1e4a2e}
+.prow:last-child{border-bottom:none}
+/* Board */
+#board{background:#1b4a2c;border-radius:10px;border:3px solid #4a2808}
+.bh{background:#0e2918;padding:9px 13px;border-radius:7px 7px 0 0;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.dbadge{background:#c49a22;color:#1a0800;font-size:11px;font-weight:600;padding:3px 9px;border-radius:3px;letter-spacing:1.5px}
+.tmr{color:#f0dbb0;font-size:17px;font-weight:600;margin-left:auto;font-variant-numeric:tabular-nums}
+.tmr.warn{color:#ef5350}
+.dot{width:8px;height:8px;border-radius:50%;background:#1e5c2c;border:1px solid #2d6e3e;display:inline-block}
+.dot.done{background:#c49a22;border-color:#c49a22}
+.dot.cur{background:#7ab87a;border-color:#7ab87a}
+.players-list{padding:10px;display:flex;flex-direction:column;gap:6px}
+.pc{background:#f0dab0;border:1px solid #8b6914;border-radius:6px;padding:8px 10px}
+.pc.me{border-color:#c49a22;border-width:2px}
+.pc.arr{opacity:.6}
+.pc.eli{opacity:.3}
+.pc-top{display:flex;align-items:center;gap:6px}
+.pc-name{font-size:13px;font-weight:600;color:#1e0e00;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-pts{font-size:11px;color:#5a3010;flex-shrink:0}
+.tbtn{background:#c49a22;color:#1a0800;border:none;font-size:10px;font-family:inherit;padding:3px 8px;border-radius:3px;cursor:pointer;flex-shrink:0}
+.tbtn:hover{background:#d4aa32}
+.pc-badges{display:flex;gap:3px;flex-wrap:wrap;margin-top:4px}
+.badge{font-size:9px;padding:1px 5px;border-radius:3px}
+.bcr{background:#b71c1c;color:#fff}
+.bsk{background:#1565c0;color:#fff}
+.bar{background:#555;color:#fff}
+/* Hand */
+.hand-area{background:#0a2212;border-top:2px solid #4a2808;border-radius:0 0 7px 7px;padding:10px 12px}
+.hand-ttl{font-size:10px;color:#7ab87a;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.notif{font-size:11px;color:#c49a22;font-style:italic;min-height:16px;margin-bottom:4px;text-align:center}
+.hand-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px}
+.hand-row::-webkit-scrollbar{height:3px}
+.hand-row::-webkit-scrollbar-thumb{background:#2d6e3e;border-radius:2px}
+/* Card draft picker */
+.draft-banner{background:#0d1f10;border:2px solid #c49a22;border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.draft-ttl{font-size:10px;color:#c49a22;letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px}
+.draft-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.hc{min-width:78px;width:78px;border-radius:8px;padding:6px;display:flex;flex-direction:column;min-height:108px;cursor:pointer;flex-shrink:0;transition:transform .12s;border:1px solid #d8d8d8;background:#fff}
+.hc:hover{transform:translateY(-4px)}
+.hc.pink{background:#fde8f0;border-color:#f48fb1}
+.hc.blue{background:#e3f2fd;border-color:#90caf9}
+.hc.silver{background:#efefef;border-color:#bdbdbd}
+.hc.gold{background:#fff8e1;border-color:#ffd54f}
+.hc.orange{background:#fef0d9;border-color:#e8a000}
+.hc.lblue{background:#e1f5fe;border-color:#81d4fa}
+.hc.sel{outline:2px solid #c49a22;outline-offset:2px}
+.hct{font-size:7.5px;letter-spacing:.4px;text-transform:uppercase;font-weight:600;padding:1px 4px;border-radius:3px;display:inline-block;margin-bottom:3px}
+.hcn{font-size:9.5px;font-weight:600;line-height:1.3;color:#1a1a1a}
+.hce{font-size:8px;color:#8b6914;margin-top:1px}
+.hcp{font-size:8.5px;color:#555;margin-top:1px}
+.use-btn{background:#4a2808;color:#f0dbb0;border:none;font-size:8px;font-family:inherit;padding:2px 0;border-radius:2px;cursor:pointer;margin-top:auto;display:block;width:100%}
+.use-btn:hover{background:#6b3a0e}
+.tTrade{background:#e8f5e9;color:#1b5e20}
+.tScam{background:#eceff1;color:#37474f}
+.tAction{background:#e3f2fd;color:#0d47a1}
+.tContraband{background:#ffebee;color:#b71c1c}
+.tItem{background:#fff3e0;color:#bf360c}
+/* Trade overlay */
+#tov{display:none;position:fixed;inset:0;background:rgba(6,14,10,.97);z-index:100;flex-direction:column}
+.tov-h{background:#080f0a;padding:9px 13px;display:flex;align-items:center;gap:8px;border-bottom:2px solid #4a2808;flex-shrink:0}
+.tov-ttl{color:#c49a22;font-size:13px;letter-spacing:1px}
+.tov-x{background:#1a4a28;border:1px solid #4a9a5a;color:#d0f0d0;padding:3px 9px;border-radius:3px;font-size:11px;cursor:pointer;font-family:inherit;margin-left:auto}
+.tov-b{flex:1;overflow-y:auto;padding:11px;display:flex;flex-direction:column;gap:9px}
+.tov-b::-webkit-scrollbar{width:3px}
+.tov-b::-webkit-scrollbar-thumb{background:#2d6e3e}
+.tov-pane{background:#0a1e12;border:1px solid #1e5a2e;border-radius:8px;padding:9px}
+.tov-lbl{font-size:9px;color:#5a9c5a;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
+.tov-cards{display:flex;gap:5px;flex-wrap:wrap;min-height:28px}
+.tpts{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:#f0dbb0}
+.padj{background:#1a3e10;border:1px solid #4a9a22;color:#f0c030;width:22px;height:22px;border-radius:3px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1}
+.tov-f{background:#080f0a;padding:9px 13px;display:flex;gap:7px;justify-content:flex-end;border-top:2px solid #4a2808;flex-shrink:0;flex-wrap:wrap}
+.ab{background:#1a4a28;border:1px solid #4a9a5a;color:#d0f0d0;padding:5px 12px;border-radius:4px;font-size:12px;cursor:pointer;font-family:inherit;font-style:italic}
+.ab:hover{background:#255f34;color:#fff}
+.ab.gld{background:#c49a22;color:#1a0800;border-color:#c49a22;font-style:normal}
+.ab.gld:hover{background:#d4aa32}
+.ab.red{background:#b71c1c;color:#fff;border-color:#b71c1c;font-style:normal}
+.facedn{width:42px;min-height:58px;background:#8b1a1a;border:1px solid #c49a22;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#c49a22;font-size:15px;flex-shrink:0}
+.sm-card{min-width:42px;width:42px;border-radius:5px;padding:4px;display:flex;flex-direction:column;min-height:58px;flex-shrink:0;border:1px solid #ccc;background:#fff}
+.sm-card.pink{background:#fde8f0;border-color:#f48fb1}
+.sm-card.blue{background:#e3f2fd;border-color:#90caf9}
+.sm-card.silver{background:#efefef;border-color:#bdbdbd}
+.sm-card.gold{background:#fff8e1;border-color:#ffd54f}
+.sm-card.orange{background:#fef0d9;border-color:#e8a000}
+.sm-card.lblue{background:#e1f5fe;border-color:#81d4fa}
+.revcol{width:42px;min-height:58px;border:1px solid #c49a22;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;text-align:center;color:rgba(0,0,0,.7);flex-shrink:0}
+.act-btns{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.rbox{background:#0a1e12;border:2px solid #c49a22;border-radius:8px;padding:18px;text-align:center;color:#f0dbb0}
+.notif-log{margin-top:8px}
+.nlog-item{font-size:11px;color:#7ab87a;font-style:italic;margin-bottom:2px}
+.hand-scroll{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px}
+.hand-scroll::-webkit-scrollbar{height:3px}
+.hand-scroll::-webkit-scrollbar-thumb{background:#2d6e3e;border-radius:2px}
+.xbw-grid{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;padding:8px 0}
+.trade-status{font-size:12px;color:#7ab87a;font-style:italic;padding:8px 10px;text-align:center}
+.chat-area{margin-top:8px;background:#071510;border:1px solid #2d5a2d;border-radius:7px;padding:8px 10px}
+.chat-msgs{height:90px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;margin-bottom:6px}
+.chat-msgs::-webkit-scrollbar{width:3px}
+.chat-msgs::-webkit-scrollbar-thumb{background:#2d6e3e;border-radius:2px}
+.chat-msg{font-size:11px;color:#b8d8b8;line-height:1.4;word-break:break-word}
+.chat-msg .cn{color:#c49a22;font-weight:600}
+.chat-row{display:flex;gap:5px}
+.chat-inp{flex:1;background:#0a1a10;border:1px solid #3a7a3a;border-radius:3px;color:#d0e8d0;font-size:12px;padding:4px 7px;font-family:inherit;outline:none}
+.chat-inp:focus{border-color:#5a9c5a}
+.chat-send{background:#1a4a28;border:1px solid #4a9a5a;color:#d0f0d0;padding:4px 10px;border-radius:3px;font-size:11px;cursor:pointer;font-family:inherit}
+.chat-send:hover{background:#255f34}
+.leave-btn{background:transparent;border:1px solid #4a2808;color:#7a5a3a;padding:2px 7px;border-radius:3px;font-size:10px;cursor:pointer;font-family:inherit;margin-left:auto}
+.leave-btn:hover{background:#3a1a08;color:#c49a22;border-color:#c49a22}
+.hcd{font-size:9px;color:#6a6a6a;line-height:1.3;margin-top:2px;font-style:italic}
+.trade-result{display:flex;gap:8px;margin-bottom:8px}
+.tr-side{flex:1;background:#0a1a10;border:1px solid #2d5a2d;border-radius:6px;padding:8px;text-align:center}
+.tr-side-name{font-size:10px;color:#7ab87a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.tr-side-pts{font-size:22px;font-weight:700;margin:4px 0}
+.tr-side-pts.pos{color:#7ab87a}
+.tr-side-pts.neg{color:#ef5350}
+.tr-side-cards{font-size:10px;color:#c49a22;margin-top:4px;line-height:1.5}
+.tchat{border-top:1px solid #1a3a1a;padding:7px 11px;background:#050e07;flex-shrink:0}
+.tchat-lbl{font-size:9px;color:#3a7a3a;letter-spacing:.7px;text-transform:uppercase;margin-bottom:4px}
+.tchat-msgs{height:72px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;margin-bottom:5px}
+.tchat-msgs::-webkit-scrollbar{width:3px}
+.tchat-msgs::-webkit-scrollbar-thumb{background:#2d5a2d;border-radius:2px}
+.tchat-msg{font-size:10px;color:#90c090;line-height:1.3;word-break:break-word}
+.tchat-msg .cn{color:#c49a22;font-weight:600}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- CONFIG SCREEN -->
+<!-- LOBBY SCREEN -->
+<div class="screen active" id="s-lobby">
+  <div style="margin-top:28px">
+    <div class="title">⚜ THE TRADING GAME ⚜</div>
+    <div class="subtitle">circa 1800</div>
+    <div class="card-box">
+      <label>Your Name</label>
+      <input id="my-name" placeholder="Enter your name" maxlength="20">
+      <button class="btn" style="margin-top:14px" onclick="G.createRoom()">✦ Create New Room</button>
+      <hr class="div">
+      <label>Room Code</label>
+      <input id="join-code" placeholder="6-letter code" maxlength="6" style="text-transform:uppercase;letter-spacing:3px;text-align:center">
+      <button class="btn sec" onclick="G.joinRoom()">Join Room →</button>
+    </div>
+    <div id="lobby-err" style="color:#ef5350;font-size:12px;text-align:center"></div>
+  </div>
+</div>
+
+<!-- WAITING ROOM -->
+<div class="screen" id="s-wait">
+  <div style="margin-top:20px">
+    <div class="title">⚜ Waiting Room ⚜</div>
+    <div class="card-box" style="text-align:center">
+      <div style="font-size:10px;color:#7ab87a;margin-bottom:4px;letter-spacing:.5px;text-transform:uppercase">Room Code — share with friends</div>
+      <div class="code-big" id="wait-code">——</div>
+    </div>
+    <div class="card-box">
+      <div style="font-size:10px;color:#7ab87a;letter-spacing:.5px;text-transform:uppercase;margin-bottom:9px">Players</div>
+      <div id="wait-players"></div>
+    </div>
+    <div id="host-ctrl" style="display:none">
+      <div style="display:flex;gap:7px;margin-bottom:8px">
+        <button class="btn sec" style="flex:1;margin-top:0" onclick="G.addBot()">+ Add Bot</button>
+        <button class="btn sec" style="flex:1;margin-top:0" onclick="G.removeBot()">− Remove Bot</button>
+      </div>
+      <button class="btn" onclick="G.startGame()">✦ Deal Cards &amp; Start Game</button>
+      <div style="font-size:10px;color:#5a9c5a;text-align:center;margin-top:5px;font-style:italic">You are the host · 2–10 players</div>
+    </div>
+    <div id="wait-note" style="color:#7ab87a;font-size:12px;text-align:center;margin-top:8px;font-style:italic"></div>
+  </div>
+</div>
+
+<!-- GAME BOARD -->
+<div class="screen" id="s-game">
+  <div id="board">
+    <div class="bh">
+      <div class="dbadge" id="day-badge">MONDAY</div>
+      <div id="day-dots" style="display:flex;gap:4px;align-items:center"></div>
+      <div id="day-label" style="font-size:11px;color:#7ab87a;font-style:italic"></div>
+      <div class="tmr" id="tmr">1:30</div>
+      <button class="leave-btn" onclick="G.leaveGame()">⬅ Leave</button>
+    </div>
+    <div id="events-bar"></div>
+    <div class="players-list" id="players-list"></div>
+    <div class="hand-area">
+      <div class="hand-ttl" id="hand-ttl">Your Hand</div>
+      <div class="notif" id="notif"></div>
+      <div class="hand-row" id="hand-row"></div>
+      <div id="draft-area"></div>
+      <div id="witch-status-area"></div>
+      <div id="obj-area"></div>
+    </div>
+    <div id="host-day-ctrl" style="display:none;padding:8px 12px;background:#0a1e12;border-top:1px solid #2d5a2d;text-align:center;border-radius:0 0 7px 7px">
+      <button class="btn sm sec" onclick="G.hostNextDay()">Next Day →</button>
+    </div>
+  </div>
+  <div class="notif-log" id="notif-log"></div>
+  <div class="chat-area">
+    <div style="font-size:9px;color:#5a9c5a;letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px">✦ Chat</div>
+    <div class="chat-msgs" id="chat-msgs"></div>
+    <div class="chat-row">
+      <input class="chat-inp" id="chat-inp" placeholder="Say something..." maxlength="100" onkeydown="if(event.key==='Enter')G.sendChat()">
+      <button class="chat-send" onclick="G.sendChat()">Send</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<!-- TRADE OVERLAY -->
+<div id="tov">
+  <div class="tov-h">
+    <div class="tov-ttl" id="tov-ttl">⚜ Trade</div>
+    <button class="tov-x" onclick="G.closeTrade()">✕ Close</button>
+  </div>
+  <div class="tov-b" id="tov-b"></div>
+  <div class="tchat" id="tchat" style="display:none">
+    <div class="tchat-lbl">✦ Private Trade Chat</div>
+    <div class="tchat-msgs" id="tchat-msgs"></div>
+    <div class="chat-row">
+      <input class="chat-inp" id="tchat-inp" placeholder="Message your trade partner..." maxlength="120" onkeydown="if(event.key==='Enter')G.sendTradeChat()">
+      <button class="chat-send" onclick="G.sendTradeChat()">Send</button>
+    </div>
+  </div>
+  <div class="tov-f" id="tov-f"></div>
+</div>
+
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+import{getDatabase,ref,set,get,onValue,update,push,runTransaction}from'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
+
+// ── Card definitions ──────────────────────────────────────────
+const CD=[
+  {n:'Trade ×1',bg:'white',t:'Trade',d:1,r:1,q:8},
+  {n:'Trade ×2',bg:'white',t:'Trade',d:2,r:2,q:8},
+  {n:'Trade ×3',bg:'white',t:'Trade',d:3,r:3,q:6},
+  {n:'Trade ×4',bg:'white',t:'Trade',d:4,r:4,q:5},
+  {n:'Trade ×5',bg:'white',t:'Trade',d:5,r:5,q:4},
+  {n:'Trade ×6',bg:'silver',t:'Trade',d:6,r:6,q:3},
+  {n:'Trade ×8',bg:'silver',t:'Trade',d:8,r:8,q:2},
+  {n:'Trade ×10',bg:'gold',t:'Trade',d:10,r:10,q:1},
+  {n:'Bribe (2)',bg:'white',t:'Trade',d:0,r:2,q:3,faceUp:1},
+  {n:'Bribe (3)',bg:'white',t:'Trade',d:0,r:3,q:2,faceUp:1},
+  {n:'Bribe (5)',bg:'silver',t:'Trade',d:0,r:5,q:1,faceUp:1},
+  {n:'Fine Art',bg:'gold',t:'Trade',d:5,r:5,q:3},
+  {n:'Contract (↑Donor)',bg:'pink',t:'Trade',d:4,r:3,q:3},
+  {n:'Contract (↑Recip.)',bg:'pink',t:'Trade',d:4,r:4,q:3},
+  {n:'Large Contract',bg:'pink',t:'Trade',d:6,r:6,q:2},
+  {n:'Phosphorus',bg:'orange',t:'Trade',d:4,r:4,q:3},
+  {n:'Paint',bg:'orange',t:'Trade',d:3,r:0,q:2},
+  {n:'Trash',bg:'white',t:'Scam',d:0,r:0,q:5},
+  {n:'Trash (Suspicious)',bg:'pink',t:'Scam',d:0,r:0,q:5},
+  {n:'Debts',bg:'pink',t:'Scam',d:0,r:-3,q:3},
+  {n:'Contract (Scam)',bg:'pink',t:'Scam',d:4,r:0,q:5,isCS:1},
+  {n:'Intuition',bg:'blue',t:'Action',d:0,r:0,q:10},
+  {n:'Inspect',bg:'blue',t:'Action',d:0,r:0,q:6},
+  {n:'Call the Police',bg:'blue',t:'Action',d:0,r:-5,q:5},
+  {n:'Vigilante',bg:'pink',t:'Action',d:0,r:0,q:2},
+  {n:'Panhandle',bg:'pink',t:'Action',d:0,r:0,q:2},
+  {n:'Snooping',bg:'pink',t:'Action',d:0,r:0,q:3},
+  {n:'Swindle',bg:'pink',t:'Action',d:0,r:0,q:3},
+  {n:'Litigation',bg:'blue',t:'Action',d:0,r:0,q:2},
+  {n:'Consult Mother',bg:'blue',t:'Action',d:0,r:0,q:2,isCM:1},
+  {n:'Consult Rich Uncle',bg:'blue',t:'Action',d:0,r:0,q:2,isCU:1},
+  {n:'Consult Lawyer',bg:'blue',t:'Action',d:0,r:0,q:2,isCL:1},
+  {n:'Stolen Goods',bg:'pink',t:'Contraband',d:2,r:1,q:3},
+  {n:'Stolen Goods (Dbl)',bg:'pink',t:'Contraband',d:4,r:2,q:2},
+  {n:'Bomb',bg:'pink',t:'Contraband',d:0,r:0,q:2},
+  {n:'Dagger',bg:'pink',t:'Contraband',d:0,r:0,q:2},
+  {n:'Crossbow',bg:'pink',t:'Contraband',d:0,r:0,q:1,isXB:1,useA:1},
+  {n:'Child',bg:'white',t:'Contraband',d:0,r:0,q:2,epv:8,isChild:1},
+  {n:'Gunpowder',bg:'orange',t:'Contraband',d:1,r:1,q:3,epv:3},
+  {n:'Alcohol',bg:'pink',t:'Item',d:0,r:0,q:2},
+  {n:'Medicine',bg:'pink',t:'Item',d:0,r:0,q:2,isMed:1,useA:1},
+  {n:'Poison',bg:'pink',t:'Item',d:0,r:0,q:1,isPoison:1,useA:1},
+  {n:'Railroad Ticket',bg:'white',t:'Item',d:0,r:0,q:5,isRT:1,useA:1,epv:3},
+  {n:'Stocks',bg:'silver',t:'Item',d:0,r:0,q:3,isSk:1},
+  {n:'Oil Bond',bg:'silver',t:'Item',d:0,r:0,q:4},
+  {n:'Bread',bg:'white',t:'Item',d:0,r:0,q:4,epv:2},
+  {n:'Barrel',bg:'white',t:'Item',d:0,r:0,q:1,faceUp:1,epv:2},
+  {n:'Government Bonds',bg:'white',t:'Item',d:0,r:0,q:3,isGB:1},
+  {n:'Miracle Tonic',bg:'pink',t:'Item',d:2,r:-2,q:2,isMT:1,useA:1},
+  {n:'Hound',bg:'pink',t:'Item',d:0,r:0,q:2,isHound:1},
+  {n:'Book',bg:'white',t:'Item',d:0,r:0,q:4,isBook:1,useA:1,keepU:1},
+  {n:'Fine Wine',bg:'gold',t:'Item',d:2,r:0,q:2,epv:8},
+  {n:'Lottery Ticket',bg:'white',t:'Item',d:0,r:0,q:3,isLT:1,useA:1},
+  {n:'Raw Iron',bg:'white',t:'Item',d:0,r:0,q:5,isRI:1},
+  {n:'Coal',bg:'white',t:'Item',d:0,r:0,q:5,isCoal:1},
+  {n:'Steel',bg:'silver',t:'Item',d:0,r:0,q:1,epv:7},
+  {n:'Oil',bg:'silver',t:'Item',d:3,r:3,q:4,epv:3},
+  // New resource & commodity cards
+  {n:'Gold',bg:'gold',t:'Item',d:0,r:0,q:2,epv:8},
+  {n:'Silver',bg:'silver',t:'Item',d:0,r:0,q:4,epv:6},
+  {n:'Grain',bg:'white',t:'Item',d:0,r:0,q:4,isGrain:1,epv:3},
+  {n:'Corn',bg:'white',t:'Item',d:0,r:0,q:4,isCorn:1,epv:4},
+  {n:'Flour',bg:'white',t:'Item',d:0,r:0,q:3,isFlour:1,useA:1},
+  {n:'Wood',bg:'white',t:'Item',d:0,r:0,q:3,isWood:1,epv:2},
+  {n:'Steam Machine',bg:'silver',t:'Item',d:0,r:0,q:2,isSM:1,useA:1,keepU:1},
+  {n:'Cotton',bg:'white',t:'Item',d:0,r:0,q:3,isCotton:1,useA:1,epv:2},
+  {n:'Textile',bg:'white',t:'Item',d:0,r:0,q:4,isTextile:1,useA:1},
+  {n:'Crate',bg:'white',t:'Item',d:0,r:0,q:4,isCrate:1,epv:1,faceUp:1,useA:1},
+  // New scam cards
+  {n:'Property Scam',bg:'pink',t:'Scam',d:5,r:-5,q:2},
+  {n:'Small Scam',bg:'pink',t:'Scam',d:2,r:-2,q:10},
+  {n:'Medium Scam',bg:'pink',t:'Scam',d:5,r:-5,q:5},
+  {n:'Large Scam',bg:'pink',t:'Scam',d:8,r:-8,q:2},
+  // New action cards
+  {n:'Discussion',bg:'lblue',t:'Action',d:0,r:0,q:5,isDisc:1},
+  {n:'Integrity',bg:'lblue',t:'Action',d:0,r:0,q:3,isInteg:1},
+  {n:'Class Action Lawsuit',bg:'lblue',t:'Action',d:0,r:0,q:2,isCAL:1,useA:1},
+  {n:'Report a Scam',bg:'lblue',t:'Action',d:0,r:0,q:5,isRAS:1,useA:1},
+  // Assassin starting weapon (q:0 keeps it out of the main deck)
+  {n:'Knife',bg:'pink',t:'Action',d:0,r:0,q:0,isKnife:1,useA:1},
+  // Inequal trade cards (donor gains more than recipient)
+  {n:'Inequal Trade',bg:'pink',t:'Trade',d:6,r:2,q:3},
+  {n:'Inequal Trade',bg:'pink',t:'Trade',d:5,r:3,q:10},
+  {n:'Inequal Trade',bg:'white',t:'Trade',d:4,r:2,q:6},
+  {n:'Inequal Trade',bg:'pink',t:'Trade',d:10,r:5,q:1},
+  {n:'Inequal Trade',bg:'white',t:'Trade',d:3,r:1,q:8},
+  {n:'Inequal Trade',bg:'pink',t:'Trade',d:8,r:3,q:3},
+];
+const TBG={Trade:'#e8f5e9',Scam:'#eceff1',Action:'#e3f2fd',Contraband:'#ffebee',Item:'#fff3e0'};
+const TTX={Trade:'#1b5e20',Scam:'#37474f',Action:'#0d47a1',Contraband:'#b71c1c',Item:'#bf360c'};
+const BGCOL={white:'#fff',pink:'#fde8f0',blue:'#e3f2fd',silver:'#efefef',gold:'#fff8e1',orange:'#fef0d9',lblue:'#e1f5fe'};
+const BGNM={white:'White',pink:'Pink',blue:'Blue',silver:'Silver',gold:'Gold',orange:'Orange',lblue:'Light Blue'};
+const DAYS=['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY'];
+const OBJS=[
+  {id:'luxury',    nm:'Luxury Enthusiast',desc:'Silver-bg cards are worth +2pts to you; gold-bg cards worth +4pts to you at game end.'},
+  {id:'merchant',  nm:'Merchant',         desc:'+1pt per unique player you make a trade with, counted at game end.'},
+  {id:'rebel',     nm:'Worker Rebel',     desc:'+4pts per eliminated player (not you) at game end.'},
+  {id:'monopolist',nm:'Monopolist',       desc:'Win outright if you hold Coal + Steel + (Oil or Oil Bond) at game end.'},
+  {id:'thrifter',  nm:'Thrifter',         desc:'+1pt for every card beyond the first that another player gives you in a trade.'},
+  {id:'politician',nm:'Politician',       desc:'+2pts each time you decline a trade where the offer contained no Scam cards.'},
+  {id:'cartel',    nm:'Cartel',           desc:'+3pts each time a Scam card you offer is accepted in a completed trade.'},
+  {id:'vigilante', nm:'Vigilante',        desc:'Win outright if every player who had a criminal record on Thursday is eliminated by end of Friday.'},
+  {id:'farmer',    nm:'Farmer',           desc:'+3pts each time you donate a Bread card in a completed trade.'},
+  {id:'consumer',  nm:'Consumer',         desc:'+1pt for each Item card you use per day.'},
+  {id:'collector', nm:'Debt Collector',   desc:"At game end, any other player's negative point total becomes bonus +pts for you."},
+  {id:'barber',    nm:'Barber',           desc:'You have a secret target. +3pts for every day you successfully trade with them.'},
+  {id:'business',  nm:'Businessman',      desc:'+4pts each time you trade with a player who has previously rejected one of your trade offers.'},
+  {id:'hoarder',   nm:'Hoarder',         desc:'+2pts for every unused Item card in your hand at game end.'},
+  {id:'hustler',   nm:'Hustler',         desc:'Steal 2pts from a player the second distinct day you trade with them.'},
+  {id:'investor',  nm:'Investor',        desc:'Your Stocks and Bonds are worth their market value in bonus pts at game end.'},
+  {id:'immigrant',   nm:'Immigrant',        desc:'Win outright if you end with no criminal record and at least 15pts.'},
+  {id:'conartist',   nm:'Con Artist',       desc:'+4pts each trade you include a Scam card and your partner does not.'},
+  {id:'lunatic',     nm:'Lunatic',          desc:'+5pts per player you eliminate (Crossbow or Knife) before Friday ends.'},
+  {id:'govagent',    nm:'Government Agent', desc:'Learn the role of players you trade with. +4pts per dead evil-role player at end. Starts with a Crossbow.'},
+  {id:'armsdealer',  nm:'Arms Dealer',      desc:'+3pts at end for each weapon card (Crossbow, Dagger, Knife) you gave away in trades.'},
+  {id:'assassin',    nm:'Assassin',         desc:'Receives 2 secret targets on Thursday. +5pts per dead target at end. Starts with a Knife.'},
+  {id:'landlord',    nm:'Landlord',         desc:'+2pts at end for every player-day where someone makes no trades.'},
+  {id:'blacksmith',  nm:'Blacksmith',       desc:'+3pts at end for each Trade-type card involved in trades you participated in.'},
+  {id:'warden',      nm:'Warden',           desc:'+4pts at end for each unique player who was ever arrested.'},
+  {id:'wholesaler',  nm:'Wholesaler',       desc:'+2pts at end for each day you made exactly one completed trade.'},
+];
+const EVENTS=[
+  {id:'blackdeath',nm:'Black Death Epidemic',days:[1,2,3],desc:'0–2 players fall ill each day for the rest of the game.'},
+  {id:'marketday', nm:'Market Day',           days:[4],   desc:'All trades are worth double points today.'},
+  {id:'supply',    nm:'Supply Arrival',       days:[2,3], desc:'All players receive 0–3 random cards.'},
+  {id:'goldrush',  nm:'Gold Rush',            days:[1,3], desc:'1–3 players receive a gold card immediately.'},
+  {id:'westward',  nm:'Westward Expansion',   days:[0,1,2,3],desc:'Railroad Ticket holders may use it today to gain 8pts instead of trading.'},
+  {id:'crisis',    nm:'Financial Crisis',     days:[1,2,3],desc:'Each Trade card in a deal costs both traders −1pt. 0–2 players gain Debts. May last 1–3 days.'},
+  {id:'outlaw',    nm:'Outlaw Invasion',      days:[0,1,2,3],desc:'Players without a weapon or Hound lose 1–3 items.'},
+  {id:'flood',     nm:'Flood',               days:[2,3], desc:'All players lose their Bread cards.'},
+  {id:'rumors',    nm:'Rumors',              days:[0,1,2,3,4],desc:'All players learn who is carrying a Poison card.'},
+  {id:'tariff',    nm:'Tariff Act',          days:[1,2,3,4],desc:'Both players in any trade lose 2 extra pts. Lasts the rest of the game.'},
+  {id:'cold',      nm:'Cold Night',          days:[0,1,2,3,4],desc:'1–2 players become sick (Textile or Fine Wine protects).'},
+  {id:'foreign',   nm:'Foreign Demand',      days:[0,1,2,3,4],desc:'All trades are worth double points today.'},
+  {id:'witchhunt', nm:'Witch Hunt',           days:[0,1,2],    desc:'~25% of players secretly become witches. They curse an item and learn each other. Witches surviving to Friday win and tighten the non-witch win threshold to 20%.'},
+  {id:'uprising',  nm:'Uprising',             days:[0,1,2,3],  desc:'A random player (weighted by scams dealt) becomes a secret Outcast. Their objective is to survive until Friday. If an Outcast survives, only the top 20% of regular players win.'},
+];
+const CARD_DESCS={
+  'Trade ×1':'Both traders gain 1pt each.',
+  'Trade ×2':'Both traders gain 2pts each.',
+  'Trade ×3':'Both traders gain 3pts each.',
+  'Trade ×4':'Both traders gain 4pts each.',
+  'Trade ×5':'Both traders gain 5pts each.',
+  'Trade ×6':'Both traders gain 6pts each.',
+  'Trade ×8':'Both traders gain 8pts each.',
+  'Trade ×10':'Both traders gain 10pts each.',
+  'Bribe (2)':'Giver gains 0pt; receiver gains 2pts.',
+  'Bribe (3)':'Giver gains 0pt; receiver gains 3pts.',
+  'Bribe (5)':'Giver gains 0pt; receiver gains 5pts.',
+  'Fine Art':'Both traders gain 5pts each.',
+  'Inequal Trade':'Giver gains more than receiver — see point values.',
+  'Intuition':'Reveals one hidden card in the other player\'s offer (color only).',
+  'Inspect':'Fully reveals one hidden card in the other player\'s offer.',
+  'Call the Police':'If a Scam card is in the initiator\'s offer, they are arrested.',
+  'Consult Mother':'Adds +1pt bonus to your side of this trade.',
+  'Rich Uncle':'Adds +2pt bonus to the trade receiver\'s side.',
+  'Consult Lawyer':'If initiator offers a Scam card, they are arrested and lose 5pts.',
+  'Discussion':'Reveals one card from each player\'s offer.',
+  'Integrity':'Fully reveals one of your own offered cards to the other player.',
+  'Class Action Lawsuit':'Nominate a defendant — if another player also accuses them this day, they are arrested.',
+  'Report a Scam':'Mark players who scammed you; they have a 25% chance of arrest next day.',
+  'Stolen Goods':'Giver gains 2pts; receiver gains 1pt.',
+  'Stolen Goods (Dbl)':'Giver gains 4pts; receiver gains 2pts.',
+  'Bomb':'Destroys all offered cards on both sides of the trade.',
+  'Dagger':'Instantly eliminates the other player in the trade.',
+  'Crossbow':'Use outside trade: 75% chance to eliminate a chosen player. Gives you +1 criminal record.',
+  'Child':'Costs you −1pt at the end of each day.',
+  'Gunpowder':'Giver and receiver each gain 1pt. Worth 3pts at game end.',
+  'Alcohol':'No trade effect. Risky item with no point value.',
+  'Medicine':'Cures sickness or neutralizes Poison before it kills next day.',
+  'Poison':'Target player dies next day unless they obtain and use Medicine.',
+  'Railroad Ticket':'Use during Westward Expansion event to gain 8pts instead of trading that day.',
+  'Stocks':'Variable end-game value — fluctuates each day between 0 and 9.',
+  'Oil Bond':'Worth 6pts at game end. Counts toward Monopolist objective.',
+  'Bread':'Worth 2pts at game end. Counts toward Farmer objective when donated.',
+  'Barrel':'Always face-up item worth 2pts at game end.',
+  'Government Bonds':'Worth 4pts at game end only if you have a clean criminal record (no arrests).',
+  'Miracle Tonic':'Giver gains 2pts; receiver loses 2pts.',
+  'Hound':'Guards against Outlaw Invasion — prevents item theft.',
+  'Book':'Use once per day to gain +3pts (card stays in your hand).',
+  'Fine Wine':'Giver gains 2pts in a trade. Passively protects against Cold Night sickness.',
+  'Lottery Ticket':'Use to instantly gain 0–10pts at random.',
+  'Raw Iron':'Combine with Coal + Steam Machine to craft 2 Steel cards.',
+  'Coal':'Crafting ingredient for Steel and Bread. Worth 3pts at game end.',
+  'Steel':'High-value refined item worth 7pts at game end.',
+  'Oil':'Both traders gain 3pts each. Worth 3pts at game end.',
+  'Gold':'Rare high-value item worth 8pts at game end.',
+  'Silver':'Worth 6pts at game end.',
+  'Grain':'Worth 3pts at game end. 20% chance to spoil and vanish each day.',
+  'Corn':'Worth 4pts at game end. 20% chance to spoil and vanish each day.',
+  'Flour':'Use with Coal or Wood to produce 3 Bread cards.',
+  'Wood':'Crafting ingredient. Worth 2pts at game end.',
+  'Steam Machine':'Use with Raw Iron + Coal to craft 2 Steel (stays in hand after use).',
+  'Cotton':'Use with Steam Machine + Wood or Coal to create a Textile card.',
+  'Textile':'Worth 5pts at game end (2pts if already used for Cold Night protection).',
+  'Crate':'Store one item inside — hidden from the other trader. Worth 1pt at end.',
+  'Property Scam':'Giver gains 5pts; receiver loses 5pts.',
+  'Small Scam':'Giver gains 2pts; receiver loses 2pts.',
+  'Medium Scam':'Giver gains 5pts; receiver loses 5pts.',
+  'Large Scam':'Giver gains 8pts; receiver loses 8pts.',
+  'Debts':'No positive effect. Burdens the holder with negative value.',
+};
+let DYN=10000;
+
+// ── Helpers ──────────────────────────────────────────────────
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function rcode(){let s='';for(let i=0;i<6;i++)s+='ABCDEFGHJKLMNPQRSTUVWXYZ'[0|Math.random()*24];return s}
+function screen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function setEl(id,html){const e=document.getElementById(id);if(e)e.innerHTML=html}
+function fmt(v){return v>0?'+'+v:String(v)}
+function showPts(c){return c.d!==0||c.r!==0}
+function makeCard(name){const d=CD.find(x=>x.n===name);if(!d)return null;const c={...d,uid:DYN++};delete c.q;return c}
+
+function buildDeck(){
+  let id=0,d=[];
+  CD.forEach(def=>{
+    for(let i=0;i<def.q;i++){
+      const c={...def,uid:id++};
+      delete c.q;
+      if(c.isSk)c.val=2+Math.floor(Math.random()*4);
+      if(c.isPoison)c.kf=null;// knownFirst player ID
+      d.push(c);
+    }
+  });
+  return shuffle(d);
+}
+
+function cardName(c,viewerId){
+  return(c.isPoison&&c.kf!==null&&c.kf!==viewerId)?'Medicine':c.n;
+}
+function cardBg(c){return c.bg==='white'?'':c.bg}
+
+function hcHTML(c,viewerId,opts={}){
+  const nm=cardName(c,viewerId);
+  const bg=cardBg(c);
+  const sel=opts.selected?' sel':'';
+  let info='';
+  if(showPts(c))info+=`<div class="hcp">${fmt(c.d)}/${fmt(c.r)}</div>`;
+  if(c.epv)info+=`<div class="hce">★${c.epv}pts end</div>`;
+  if(c.isSk)info+=`<div class="hce">★${c.val}pts</div>`;
+  if(c.isGB)info+=`<div class="hce">★4 if clean</div>`;
+  if(c.isChild)info+=`<div class="hce">−1/day</div>`;
+  if(c.isRI)info+=`<div class="hce">3pts/→Steel</div>`;
+  if(c.isHound)info+=`<div class="hce">🛡 Guard</div>`;
+  if(c.isPoison&&c.kf===viewerId)info+=`<div class="hce" style="color:#b71c1c">⚠Poison!</div>`;
+  if(c.isGrain||c.isCorn)info+=`<div class="hce">20% spoil/day</div>`;
+  if(c.isTextile)info+=`<div class="hce">★${c.textileUsed?'2':'5'}pts end${c.textileUsed?' (used)':''}</div>`;
+  if(c.isCrate&&c.crateItem)info+=`<div class="hce">📦 Item inside</div>`;
+  if(c.isCursed)info+=`<div class="hce" style="color:#cc44ff">🔮 Cursed</div>`;
+  if(c.isFlour)info+=`<div class="hce">+Coal/Wood→3 Bread</div>`;
+  if(c.isSM)info+=`<div class="hce">+RI+Coal→2 Steel</div>`;
+  if(c.isCotton)info+=`<div class="hce">+SM+(Wood/Coal)→Textile</div>`;
+  const desc=CARD_DESCS[nm]||CARD_DESCS[c.n]||'';
+  if(desc)info+=`<div class="hcd">${desc}</div>`;
+  const usable=c.useA||c.isBook||c.isXB;
+  const clickH=opts.onclick?`onclick="${opts.onclick}"`:''
+  const useH=usable&&!opts.noUse?`<button class="use-btn" onclick="G.useCard(${c.uid},event)">▶ Use</button>`:'';
+  return`<div class="hc ${bg}${sel}" ${clickH}><span class="hct t${c.t}">${c.t}</span><div class="hcn">${nm}</div>${info}${useH}</div>`;
+}
+function smCardHTML(c,viewerId){
+  const nm=cardName(c,viewerId);
+  const bg=cardBg(c);
+  const extra=c.isSk?`<div style="font-size:8px;color:#8b6914">★${c.val}</div>`
+    :c.isCrate?`<div style="font-size:7px;color:#555">${c.crateItem?'📦 item inside':'📦 empty'}</div>`:'';
+  return`<div class="sm-card ${bg}"><span style="font-size:7px;text-transform:uppercase;font-weight:600;padding:1px 3px;border-radius:2px;background:${TBG[c.t]};color:${TTX[c.t]}">${c.t}</span><div style="font-size:8px;font-weight:600;line-height:1.3;margin-top:2px;color:#1a1a1a">${nm}</div>${extra}</div>`;
+}
+
+// ── App State ──────────────────────────────────────────────────
+let DB,ROOM,MY_ID,MY_NAME,IS_HOST;
+let lastNotifTs=0;
+let timerIv;
+let autoAdvancing=false;
+let tovMode='';
+
+// ── Firebase Init ──────────────────────────────────────────────
+async function initFirebase(){
+  const cfg={
+    apiKey:"AIzaSyAkCgpIe69cmguNRj8GANM_ClcwU-yzsCo",
+    authDomain:"trade-bad.firebaseapp.com",
+    databaseURL:"https://trade-bad-default-rtdb.firebaseio.com",
+    projectId:"trade-bad",
+    storageBucket:"trade-bad.firebasestorage.app",
+    messagingSenderId:"484781049754",
+    appId:"1:484781049754:web:873d3d9d5f71188aa6dc23",
+    measurementId:"G-N9E1ZB1HQ2"
+  };
+  try{
+    const app=initializeApp(cfg);
+    DB=getDatabase(app);
+    await get(ref(DB,'.info/connected'));
+    screen('s-lobby');
+  }catch(e){console.error('Firebase error:',e)}
+}
+
+// ── Room ──────────────────────────────────────────────────────
+async function createRoom(){
+  const name=document.getElementById('my-name').value.trim();
+  if(!name){document.getElementById('lobby-err').textContent='Enter your name';return}
+  MY_NAME=name;MY_ID=uid();IS_HOST=true;ROOM=rcode();
+  await set(ref(DB,`games/${ROOM}`),{
+    host:MY_ID,phase:'lobby',day:0,timerEnd:0,
+    players:{[MY_ID]:{name:MY_NAME,pts:0,cr:0,status:'active',sick:false,tradedToday:false,order:0}},
+    hands:{[MY_ID]:[]},deck:[],trade:null,notifs:{}
+  });
+  enterWait();
+}
+
+async function joinRoom(){
+  const name=document.getElementById('my-name').value.trim();
+  const code=document.getElementById('join-code').value.trim().toUpperCase();
+  if(!name){document.getElementById('lobby-err').textContent='Enter your name';return}
+  if(code.length!==6){document.getElementById('lobby-err').textContent='Enter a 6-letter code';return}
+  MY_NAME=name;MY_ID=uid();IS_HOST=false;ROOM=code;
+  const snap=await get(ref(DB,`games/${ROOM}`));
+  if(!snap.exists()){document.getElementById('lobby-err').textContent='Room not found';return}
+  const g=snap.val();
+  if(g.phase!=='lobby'){document.getElementById('lobby-err').textContent='Game already started';return}
+  const order=Object.keys(g.players||{}).length;
+  await update(ref(DB,`games/${ROOM}`),{
+    [`players/${MY_ID}`]:{name:MY_NAME,pts:0,cr:0,status:'active',sick:false,tradedToday:false,order},
+    [`hands/${MY_ID}`]:[]
+  });
+  enterWait();
+}
+
+function enterWait(){
+  document.getElementById('wait-code').textContent=ROOM;
+  document.getElementById('host-ctrl').style.display=IS_HOST?'block':'none';
+  document.getElementById('wait-note').textContent=IS_HOST?'':'Waiting for host to start...';
+  screen('s-wait');
+  onValue(ref(DB,`games/${ROOM}`),snap=>{
+    if(!snap.exists())return;
+    const g=snap.val();
+    if(g.phase==='playing'||g.phase==='ended'){enterGame();return}
+    // render wait players
+    const sorted=Object.entries(g.players||{}).sort((a,b)=>a[1].order-b[1].order);
+    setEl('wait-players',sorted.map(([id,p])=>`<div class="prow">
+      <span style="color:#c49a22">${sorted[0][0]===id?'♛':p.isBot?'🤖':''}</span>
+      <span style="flex:1;font-size:13px">${p.name}${id===MY_ID?' (You)':''}</span>
+      <span style="font-size:10px;color:#7ab87a">${p.isBot?'Bot':'Ready'}</span>
+    </div>`).join(''));
+  });
+}
+
+// ── Start Game (host) ──────────────────────────────────────────
+async function startGame(){
+  const snap=await get(ref(DB,`games/${ROOM}`));
+  const g=snap.val();
+  const pids=Object.entries(g.players||{}).sort((a,b)=>a[1].order-b[1].order).map(([id])=>id);
+  if(pids.length<2){alert('Need at least 2 players');return}
+  const deck=buildDeck();
+  const hands={};pids.forEach(id=>hands[id]=[]);
+  let pi=0;
+  for(let i=0;i<7*pids.length&&deck.length;i++){
+    const card=deck.pop();
+    if(card.isPoison&&card.kf===null)card.kf=pids[pi];
+    hands[pids[pi]].push(card);
+    pi=(pi+1)%pids.length;
+  }
+  // Assign secret objectives
+  const players=JSON.parse(JSON.stringify(g.players));
+  const shObjs=[...OBJS].sort(()=>Math.random()-.5);
+  pids.forEach((id,i)=>{
+    const ob=shObjs[i%shObjs.length];
+    players[id].obj=ob.id;
+    players[id].objTrack={tWith:{},rejMe:{},decGood:0,cartel:0,iDay:0,agr:0,bDays:{},thrift:0};
+    if(ob.id==='barber'){
+      const oth=pids.filter(p=>p!==id);
+      players[id].objTarget=oth[0|Math.random()*oth.length];
+    }
+  });
+  // Give starting items for specific objectives
+  pids.forEach(id=>{
+    const obj=players[id].obj;
+    if(obj==='govagent'){const nc=makeCard('Crossbow');if(nc)hands[id].push(nc);}
+    if(obj==='assassin'){const nc=makeCard('Knife');if(nc)hands[id].push(nc);}
+  });
+  await update(ref(DB,`games/${ROOM}`),{phase:'playing',day:0,timerEnd:Date.now()+90000,deck,hands,trade:null,players,evState:{today:[],persistent:{}}});
+}
+
+// ── Game Board ──────────────────────────────────────────────────
+let gameUnsub,botIv;
+function enterGame(){
+  screen('s-game');
+  clearInterval(timerIv);
+  timerIv=setInterval(tickTimer,1000);
+  if(IS_HOST){clearInterval(botIv);botIv=setInterval(runBotTick,5000);}
+  if(gameUnsub)gameUnsub();
+  gameUnsub=onValue(ref(DB,`games/${ROOM}`),snap=>{
+    if(!snap.exists())return;
+    const g=snap.val();
+    if(g.phase==='ended')clearInterval(botIv);
+    renderBoard(g);
+    processTrade(g);
+    processNotifs(g);
+    processChat(g);
+  });
+}
+
+function tickTimer(){
+  get(ref(DB,`games/${ROOM}/timerEnd`)).then(snap=>{
+    const end=snap.val()||0;
+    const rem=Math.max(0,Math.floor((end-Date.now())/1000));
+    const m=0|rem/60,s=rem%60;
+    const el=document.getElementById('tmr');
+    if(el){el.textContent=m+':'+(s<10?'0':'')+s;el.className='tmr'+(rem<=20?' warn':'');}
+    if(IS_HOST&&end>0&&rem===0&&!autoAdvancing){
+      autoAdvancing=true;
+      get(ref(DB,`games/${ROOM}/phase`)).then(async ps=>{
+        if(ps.val()==='playing'){await hostNextDay();}
+        autoAdvancing=false;
+      });
+    }
+  });
+}
+
+function renderBoard(g){
+  document.getElementById('day-badge').textContent=DAYS[g.day||0];
+  document.getElementById('day-label').textContent='Day '+(g.day+1)+' of 5';
+  let dots='';for(let i=0;i<5;i++)dots+=`<div class="dot${i<g.day?' done':i===g.day?' cur':''}"></div>`;
+  setEl('day-dots',dots);
+
+  // Events bar
+  const evToday=(g.evState?.today||[]);
+  const evPersist=(g.evState?.persistent||{});
+  if(evToday.length){
+    const chips=evToday.map(id=>{
+      const ev=EVENTS.find(e=>e.id===id);if(!ev)return'';
+      const isPersist=(evPersist.blackdeath&&id==='blackdeath')||(evPersist.tariff&&id==='tariff')||((evPersist.crisisLeft>0)&&id==='crisis');
+      return`<span style="font-size:9px;background:${isPersist?'#3d0000':'#3d2200'};color:${isPersist?'#ff8a8a':'#f0c040'};border:1px solid ${isPersist?'#882222':'#805000'};border-radius:3px;padding:2px 6px;white-space:nowrap">${isPersist?'⚠ ':'⚡ '}${ev.nm}</span>`;
+    }).join('');
+    setEl('events-bar',`<div style="padding:5px 12px;background:#140a00;border-bottom:1px solid #4a2808;display:flex;flex-wrap:wrap;gap:4px;align-items:center"><span style="font-size:9px;color:#7ab87a;margin-right:2px">EVENTS:</span>${chips}</div>`);
+  } else {
+    setEl('events-bar','');
+  }
+
+  const players=g.players||{};
+  const hands=g.hands||{};
+  const sorted=Object.entries(players).sort((a,b)=>a[1].order-b[1].order);
+  const myStatus=(players[MY_ID]||{}).status;
+  const tradeActive=!!g.trade;
+  const myInTrade=tradeActive&&(g.trade.init===MY_ID||g.trade.tgt===MY_ID);
+
+  setEl('players-list',sorted.map(([id,p])=>{
+    const isMe=id===MY_ID;
+    const hSize=(hands[id]||[]).length;
+    const cls='pc'+(isMe?' me':'')+(p.status==='arrested'?' arr':'')+(p.status==='eliminated'?' eli':'');
+    let badges='';
+    if(p.cr>0)badges+=`<span class="badge bcr">⚠${p.cr}rec</span>`;
+    if(p.sick)badges+=`<span class="badge bsk">Sick</span>`;
+    if(p.poisoned&&isMe)badges+=`<span class="badge" style="background:#6a1a6a;color:#fff">☠ Poisoned!</span>`;
+    if(p.status==='arrested')badges+=`<span class="badge bar">Arrested</span>`;
+    if(p.status==='eliminated')badges+=`<span class="badge" style="background:#333;color:#aaa">Dead</span>`;
+    const pairKey=[MY_ID,id].sort().join('|');
+    const tradeBlocked=!!((g.blockedPairs||{})[pairKey]);
+    const targetInTrade=tradeActive&&(g.trade.init===id||g.trade.tgt===id);
+    const canTrade=!isMe&&myStatus==='active'&&p.status==='active'&&g.phase==='playing'&&!myInTrade&&!targetInTrade&&!tradeBlocked;
+    return`<div class="${cls}">
+      <div class="pc-top">
+        <div class="pc-name">${p.isBot?'🤖 ':''}${p.name}${isMe?' (You)':''}</div>
+        <div class="pc-pts">${p.pts}pts · ${hSize}♦</div>
+        ${canTrade?`<button class="tbtn" onclick="G.openTrade('${id}')">⇄ Trade</button>`:''}
+      </div>
+      ${badges?`<div class="pc-badges">${badges}</div>`:''}
+    </div>`;
+  }).join(''));
+
+  const myHand=hands[MY_ID]||[];
+  setEl('hand-ttl',(players[MY_ID]||{}).name+' — Your Hand');
+  setEl('hand-row',myHand.length
+    ?myHand.map(c=>hcHTML(c,MY_ID)).join('')
+    :'<div style="color:#2d6e3e;font-style:italic;font-size:12px">No cards</div>');
+
+  document.getElementById('host-day-ctrl').style.display=IS_HOST&&g.phase==='playing'?'block':'none';
+
+  // Card draft picker
+  const myDraft=(g.cardDraft||{})[MY_ID];
+  if(myDraft&&myDraft.length){
+    setEl('draft-area',`<div class="draft-banner">
+      <div class="draft-ttl">✦ Choose a card to keep</div>
+      <div class="draft-row">${myDraft.map(c=>`<div style="cursor:pointer;position:relative" onclick="G.pickDraftCard(${c.uid})">${hcHTML(c,MY_ID)}<div style="position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:9px;color:#c49a22;background:rgba(0,0,0,.55);border-radius:0 0 4px 4px;padding:1px 0">Click to keep</div></div>`).join('')}</div>
+    </div>`);
+  } else {
+    setEl('draft-area','');
+  }
+
+  // Witch / curse status panel
+  const myPW=players[MY_ID]||{};
+  let witchHtml='';
+  if(myPW.isWitch){
+    const allies=myPW.witchAllies||[];
+    witchHtml+=`<div style="background:#150a1a;border:2px solid #8b00ff;border-radius:8px;padding:8px 10px;margin-top:6px">
+      <div style="font-size:9px;color:#cc44ff;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px">🔮 You Are a Witch</div>
+      <div style="font-size:10px;color:#dd88ff">${allies.length?'Fellow witches: '+allies.join(', '):'You are the only witch.'}</div>
+      <div style="font-size:9px;color:#aa66cc;margin-top:3px">Survive to Friday to win. Trading partners get cursed at day end.</div>
+    </div>`;
+  }
+  if(myPW.cursed){
+    witchHtml+=`<div style="background:#1a0505;border:2px solid #ff3333;border-radius:8px;padding:8px 10px;margin-top:6px">
+      <div style="font-size:9px;color:#ff5555;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px">☠ You Are Cursed</div>
+      <div style="font-size:10px;color:#ff8888">50% chance to die at end of this day!</div>
+    </div>`;
+  }
+  if(myPW.isOutcast){
+    witchHtml+=`<div style="background:#1a100a;border:2px solid #e06020;border-radius:8px;padding:8px 10px;margin-top:6px">
+      <div style="font-size:9px;color:#e06020;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px">⚔ You Are an Outcast</div>
+      <div style="font-size:10px;color:#f09060">Survive until the end of Friday to win. If you do, only the top 20% of other players win.</div>
+    </div>`;
+  }
+  if(myPW.obj==='assassin'&&(myPW.assassinTargets||[]).length){
+    const tnames=(myPW.assassinTargets||[]).map(tid=>players[tid]?.name||'?').join(', ');
+    witchHtml+=`<div style="background:#0f0a14;border:2px solid #aa2244;border-radius:8px;padding:8px 10px;margin-top:6px">
+      <div style="font-size:9px;color:#cc4466;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px">🔪 Assassination Targets</div>
+      <div style="font-size:10px;color:#ee8899">Eliminate: <strong>${tnames}</strong></div>
+      <div style="font-size:9px;color:#aa6677;margin-top:3px">Use the Knife during a trade with your target.</div>
+    </div>`;
+  }
+  if(myPW.obj==='govagent'){
+    const detected=myPW.objTrack?.detectedEvil||{};
+    const detEntries=Object.entries(detected);
+    const intel=detEntries.length?detEntries.map(([tid,role])=>`${players[tid]?.name||'?'} (${role})`).join(', '):'None yet — trade with suspects to learn their role.';
+    witchHtml+=`<div style="background:#0a100f;border:2px solid #2a7a4a;border-radius:8px;padding:8px 10px;margin-top:6px">
+      <div style="font-size:9px;color:#4aaa6a;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px">🕵 Government Intel</div>
+      <div style="font-size:10px;color:#88cc99">Known evil: ${intel}</div>
+    </div>`;
+  }
+  setEl('witch-status-area',witchHtml);
+
+  // Objective display
+  const myP=players[MY_ID]||{};
+  const ob=OBJS.find(o=>o.id===myP.obj);
+  if(g.phase==='ended'){
+    const allObjs=sorted.map(([id,p])=>{
+      const o=OBJS.find(x=>x.id===p.obj);
+      const isWin=p.winner||p.objWin;
+      const roleTag=p.isWitch?`<span style="font-size:9px;color:#cc44ff;margin-right:3px">🔮Witch</span>`:p.isOutcast?`<span style="font-size:9px;color:#e06020;margin-right:3px">⚔Outcast</span>`:'';
+
+      return`<div style="display:flex;align-items:baseline;gap:6px;padding:4px 0;border-bottom:1px solid #2d1a4a;${isWin?'background:rgba(196,154,34,0.08);border-radius:4px;padding:4px 6px;':''}">
+        <span style="font-size:13px">${isWin?'🏆':p.status==='eliminated'?'💀':'  '}</span>
+        <span style="font-size:11px;color:${isWin?'#f0dbb0':'#9a8ab0'};flex:1;font-weight:${isWin?'600':'400'}">${p.name}${id===MY_ID?' (You)':''}</span>
+        <span style="font-size:10px;color:#b07ad0">${roleTag}${o?.nm||'?'}</span>
+        <span style="font-size:11px;color:#c49a22;font-weight:600">${p.pts}pts</span>
+      </div>`;
+    }).join('');
+    const anyWinner=sorted.some(([,p])=>p.winner||p.objWin);
+    setEl('obj-area',`<div style="background:#120820;border:2px solid #7b3f9e;border-radius:8px;padding:10px;margin-top:8px">
+      <div style="font-size:9px;color:#b07ad0;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">⚜ Objectives Revealed</div>
+      ${allObjs}
+      ${anyWinner?(()=>{const aw=sorted.filter(([,p])=>p.isWitch&&p.winner);const ao=sorted.filter(([,p])=>p.isOutcast&&p.winner);const special=aw.length||ao.length;const specialTxt=[aw.length?'🔮 Witches survived':'',ao.length?'⚔ Outcast survived':''].filter(Boolean).join(' & ');return`<div style="font-size:10px;color:#c49a22;margin-top:8px;text-align:center">${special?specialTxt+' — top 20% of regular players win':'🏆 Top 40% win'} — outright-win objectives always succeed</div>`})():''}
+    </div>`);
+  } else if(ob){
+    const tgtName=myP.objTarget?(players[myP.objTarget]?.name||'?'):'';
+    const ot=myP.objTrack||{};
+    const prog=
+      ob.id==='merchant'?`Unique trades: ${Object.keys(ot.tWith||{}).length}`:
+      ob.id==='barber'?`Days with target: ${Object.keys(ot.bDays||{}).length}/5`:
+      ob.id==='thrifter'?`Extra cards received: ${ot.thrift||0}`:
+      ob.id==='politician'?`Good declines: ${ot.decGood||0}`:
+      ob.id==='cartel'?`Scam successes: ${ot.cartel||0}`:
+      ob.id==='farmer'?`Bread donations: ${ot.agr||0}`:
+      ob.id==='consumer'?`Items used today: ${ot.iDay||0}`:
+      ob.id==='conartist'?`Clean scams: ${ot.conScams||0} (+${(ot.conScams||0)*4}pts)`:
+      ob.id==='lunatic'?`Kills: ${ot.kills||0} (+${(ot.kills||0)*5}pts)`:
+      ob.id==='armsdealer'?`Weapons sold: ${ot.weaponsSold||0} (+${(ot.weaponsSold||0)*3}pts)`:
+      ob.id==='blacksmith'?`Trade cards handled: ${ot.contracts||0} (+${(ot.contracts||0)*3}pts)`:
+      ob.id==='wholesaler'?`Solo-trade days: ${ot.soloTradeDays||0} (+${(ot.soloTradeDays||0)*2}pts)`:
+      ob.id==='landlord'?`No-trade player-days: ${ot.noTradeDays||0} (+${(ot.noTradeDays||0)*2}pts)`:
+      ob.id==='assassin'?`Targets: ${(myP.assassinTargets||[]).length?((myP.assassinTargets||[]).map(tid=>(players[tid]?.name||'?')).join(', ')):'Revealed on Thursday'}`:
+      ob.id==='warden'?`Arrested players tracked in-game`:'';
+    setEl('obj-area',`<div style="background:#120820;border:2px solid #7b3f9e;border-radius:8px;padding:8px 10px;margin-top:8px">
+      <div style="font-size:9px;color:#b07ad0;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px">⚜ Secret Objective</div>
+      <div style="font-size:12px;font-weight:600;color:#e0c0f0;margin-bottom:4px">${ob.nm}</div>
+      <div style="font-size:10px;color:#c0a0d0;line-height:1.5">${ob.desc}</div>
+      ${tgtName?`<div style="font-size:10px;color:#c49a22;margin-top:5px">Target: <strong>${tgtName}</strong></div>`:''}
+      ${prog?`<div style="font-size:10px;color:#7ab87a;margin-top:4px;font-style:italic">${prog}</div>`:''}
+    </div>`);
+  } else {
+    setEl('obj-area','');
+  }
+}
+
+function processNotifs(g){
+  const ns=Object.values(g.notifs||{}).sort((a,b)=>a.ts-b.ts);
+  const newN=ns.filter(n=>n.ts>lastNotifTs);
+  if(newN.length){
+    const latest=newN[newN.length-1];
+    const el=document.getElementById('notif');
+    if(el){el.textContent=latest.msg;setTimeout(()=>{if(el.textContent===latest.msg)el.textContent=''},5000);}
+    lastNotifTs=latest.ts;
+  }
+  const last5=ns.slice(-5).reverse();
+  setEl('notif-log',last5.map(n=>`<div class="nlog-item">${n.msg}</div>`).join(''));
+}
+
+async function pushNotif(msg){
+  const nr=push(ref(DB,`games/${ROOM}/notifs`));
+  await set(nr,{msg,ts:Date.now()});
+}
+
+// ── Host Next Day ──────────────────────────────────────────────
+async function hostNextDay(){
+  const snap=await get(ref(DB,`games/${ROOM}`));
+  const g=snap.val();
+  const players={...g.players};
+  const hands=JSON.parse(JSON.stringify(g.hands||{}));
+
+  const deathNotes=[];
+  // Landlord: tally player-days with no trades before resetting tradedToday
+  const landlords=Object.keys(players).filter(id=>players[id].obj==='landlord'&&players[id].status!=='eliminated');
+  if(landlords.length){
+    const noTradeCount=Object.keys(players).filter(id=>players[id].status!=='eliminated'&&!players[id].tradedToday).length;
+    landlords.forEach(id=>{if(!players[id].objTrack)players[id].objTrack={};players[id].objTrack.noTradeDays=(players[id].objTrack.noTradeDays||0)+noTradeCount;});
+  }
+  Object.keys(players).forEach(id=>{
+    const p=players[id];if(p.status==='eliminated')return;
+    if(!p.tradedToday)p.pts-=2;
+    p.tradedToday=false;
+    // Wholesaler: track days with exactly one completed trade
+    if(p.obj==='wholesaler'){if(p.tradeCountToday===1){if(!p.objTrack)p.objTrack={};p.objTrack.soloTradeDays=(p.objTrack.soloTradeDays||0)+1;}}
+    p.tradeCountToday=0;
+    // Reset daily trade attempt counter
+    p.tradeAttemptsToday=0;
+    (hands[id]||[]).forEach(c=>{if(c.isChild)p.pts-=1});
+    const hasPh=(hands[id]||[]).some(c=>c.n==='Phosphorus');
+    const hasPt=(hands[id]||[]).some(c=>c.n==='Paint');
+    if(hasPh&&Math.random()<1/3)p.sick=true;
+    if(hasPt&&Math.random()<1/4)p.sick=true;
+    if(p.sick){
+      if(p.sickSince==null)p.sickSince=g.day;
+      else if(g.day>p.sickSince&&Math.random()<0.5){p.status='eliminated';p.sick=false;delete p.sickSince;deathNotes.push(`${p.name} succumbed to disease!`);}
+    }
+    if(p.poisoned){
+      p.status='eliminated';
+      const pby=p.poisonedBy;
+      if(pby&&players[pby]?.status!=='eliminated'){
+        if(players[pby].obj==='lunatic'){if(!players[pby].objTrack)players[pby].objTrack={};players[pby].objTrack.kills=(players[pby].objTrack.kills||0)+1;}
+      }
+      delete p.poisoned;delete p.poisonedBy;
+      deathNotes.push(`${p.name} died from Poison!`);
+    }
+    if(p.status==='arrested'){p.wasArrested=true;hands[id]=(hands[id]||[]).filter(c=>c.t!=='Contraband');p.status='active';}
+    (hands[id]||[]).forEach(c=>{
+      if(!c.isSk)return;
+      const r=Math.random();
+      if(r<0.1)c.val=0;
+      else if(r<0.3)c.val=Math.max(0,c.val-1);
+      else if(r<0.7){}
+      else if(r<0.8)c.val++;
+      else c.val=Math.min(c.val+2,99);
+    });
+    // Grain/Corn spoilage: 20% chance per card
+    hands[id]=(hands[id]||[]).filter(c=>!(( c.isGrain||c.isCorn)&&Math.random()<0.2));
+    players[id]=p;
+  });
+
+  // Scam-report arrests
+  Object.entries(players).forEach(([id,p])=>{
+    if(!p.reportedScam||!p.scammedBy)return;
+    Object.keys(p.scammedBy).forEach(sid=>{
+      if(players[sid]?.status==='active'&&Math.random()<0.25){
+        players[sid].status='arrested';players[sid].cr=(players[sid].cr||0)+1;players[sid].wasArrested=true;
+        deathNotes.push(`${players[sid].name} arrested from reported scam!`);
+      }
+    });
+  });
+
+  // Witch curses at end of day
+  const activeWitches=Object.keys(players).filter(id=>players[id].isWitch&&players[id].status!=='eliminated');
+  if(activeWitches.length){
+    // Curse anyone who traded with a witch today
+    Object.keys(players).forEach(id=>{
+      if(players[id].tradedWithWitch&&players[id].status!=='eliminated'&&!players[id].isWitch)
+        players[id].cursed=true;
+    });
+    // Curse one random non-witch who isn't already cursed
+    const cursable=Object.keys(players).filter(id=>!players[id].isWitch&&players[id].status!=='eliminated'&&!players[id].cursed);
+    if(cursable.length){
+      const tgt=cursable[0|Math.random()*cursable.length];
+      players[tgt].cursed=true;
+      deathNotes.push(`🔮 ${players[tgt].name} was cursed by a witch!`);
+    }
+  }
+  // Resolve curses: 50% death chance; reset tradedWithWitch for next day
+  Object.keys(players).forEach(id=>{
+    if(players[id].cursed&&players[id].status!=='eliminated'){
+      players[id].cursed=false;
+      if(Math.random()<0.5){players[id].status='eliminated';deathNotes.push(`💀 ${players[id].name} perished from a curse!`);}
+    }
+    players[id].tradedWithWitch=false;
+  });
+
+  // Generate card draft (3 options each) on non-Friday day transitions
+  const cardDraft={};
+  const nd=(g.day||0)+1;
+  if(nd>=1&&nd<4){
+    const bonusPool=CD.filter(c=>c.t==='Item'||c.t==='Trade');
+    Object.keys(players).forEach(id=>{
+      if(players[id].status==='eliminated')return;
+      const opts=[],pool=[...bonusPool].sort(()=>Math.random()-.5);
+      for(const tmpl of pool){
+        if(opts.length>=3)break;
+        const nc=makeCard(tmpl.n);
+        if(nc){if(nc.isPoison&&nc.kf===null)nc.kf=id;opts.push(nc);}
+      }
+      if(opts.length)cardDraft[id]=opts;
+    });
+  }
+
+  // Reset Consumer daily counter
+  Object.keys(players).forEach(id=>{if(players[id].objTrack)players[id].objTrack.iDay=0;});
+
+  // Capture Thursday CR for Vigilante objective
+  let thursdayCR=g.thursdayCR||null;
+  if((g.day||0)===3){
+    thursdayCR={};
+    Object.entries(players).forEach(([id,p])=>{if((p.cr||0)>0)thursdayCR[id]=true;});
+  }
+
+  // Assign Assassin targets at start of Thursday
+  if(nd===3){
+    Object.keys(players).forEach(id=>{
+      if(players[id].obj==='assassin'&&players[id].status!=='eliminated'){
+        const eligible=Object.keys(players).filter(pid=>pid!==id&&players[pid].status!=='eliminated');
+        const shuffled=[...eligible].sort(()=>Math.random()-.5);
+        players[id].assassinTargets=shuffled.slice(0,Math.min(2,shuffled.length));
+      }
+    });
+  }
+
+  // ── Events ──────────────────────────────────────────────────────
+  const evState=JSON.parse(JSON.stringify(g.evState||{today:[],persistent:{}}));
+  const persist=evState.persistent||{};
+  const todayEv=[];
+  const evNotes=[];
+
+  if(nd<5){
+    // Carry forward persistent effects
+    if(persist.blackdeath){
+      const alive=Object.keys(players).filter(id=>players[id].status!=='eliminated');
+      const cnt=0|Math.random()*3;
+      shuffle([...alive]).slice(0,cnt).forEach(id=>{players[id].sick=true;});
+      todayEv.push('blackdeath');
+      if(cnt)evNotes.push(`☠ Black Death: ${cnt} more player(s) fell ill.`);
+    }
+    if((persist.crisisLeft||0)>0){todayEv.push('crisis');persist.crisisLeft--;if(persist.crisisLeft<=0)delete persist.crisisLeft;}
+    if(persist.tariff)todayEv.push('tariff');
+
+    // Roll new events for this day
+    const eligible=EVENTS.filter(ev=>{
+      if(!ev.days.includes(nd))return false;
+      if(todayEv.includes(ev.id))return false;
+      if(ev.id==='blackdeath'&&persist.blackdeath)return false;
+      if(ev.id==='tariff'&&persist.tariff)return false;
+      if(ev.id==='crisis'&&(persist.crisisLeft||0)>0)return false;
+      if(ev.id==='witchhunt'&&persist.witchhunt)return false;
+      if(ev.id==='uprising'&&persist.uprising)return false;
+      return true;
+    });
+    const r=Math.random();
+    const numNew=r<0.3?0:r<0.8?1:2;
+    shuffle([...eligible]).slice(0,numNew).forEach(ev=>{
+      todayEv.push(ev.id);
+      evNotes.push(`⚡ ${ev.nm}: ${ev.desc}`);
+      switch(ev.id){
+        case'blackdeath':{
+          persist.blackdeath=true;
+          const alive=Object.keys(players).filter(id=>players[id].status!=='eliminated');
+          const cnt=0|Math.random()*3;
+          shuffle([...alive]).slice(0,cnt).forEach(id=>{players[id].sick=true;});
+          if(cnt)evNotes.push(`☠ ${cnt} player(s) immediately fell ill.`);
+          break;
+        }
+        case'crisis':{
+          persist.crisisLeft=1+(0|Math.random()*3);
+          const alive=Object.keys(players).filter(id=>players[id].status!=='eliminated');
+          const debtCnt=0|Math.random()*3;
+          shuffle([...alive]).slice(0,debtCnt).forEach(id=>{
+            const nc=makeCard('Debts');if(nc){if(!hands[id])hands[id]=[];hands[id].push(nc);}
+          });
+          if(debtCnt)evNotes.push(`${debtCnt} player(s) received Debts.`);
+          break;
+        }
+        case'tariff':persist.tariff=true;break;
+        case'westward':break;
+        case'supply':{
+          const pool=CD.filter(c=>c.t==='Item'||c.t==='Trade');
+          Object.keys(players).forEach(id=>{
+            if(players[id].status==='eliminated')return;
+            const cnt=0|Math.random()*4;
+            for(let i=0;i<cnt;i++){
+              const tmpl=pool[0|Math.random()*pool.length];
+              const nc=makeCard(tmpl.n);
+              if(nc){if(nc.isPoison&&nc.kf===null)nc.kf=id;if(!hands[id])hands[id]=[];hands[id].push(nc);}
+            }
+          });
+          break;
+        }
+        case'goldrush':{
+          const goldPool=CD.filter(c=>c.bg==='gold');
+          const cnt=1+(0|Math.random()*3);
+          const alive=Object.keys(players).filter(id=>players[id].status!=='eliminated');
+          shuffle([...alive]).slice(0,Math.min(cnt,alive.length)).forEach(id=>{
+            const tmpl=goldPool[0|Math.random()*goldPool.length];
+            const nc=makeCard(tmpl.n);if(nc){if(!hands[id])hands[id]=[];hands[id].push(nc);}
+          });
+          break;
+        }
+        case'outlaw':{
+          const weapons=['Crossbow','Dagger','Gunpowder'];
+          const alive=Object.keys(players).filter(id=>players[id].status!=='eliminated');
+          const victims=shuffle([...alive].filter(id=>{
+            const h=hands[id]||[];
+            return!h.some(c=>weapons.includes(c.n)||c.isHound||c.isXB);
+          })).slice(0,1+(0|Math.random()*3));
+          victims.forEach(id=>{
+            let removed=0;const max=1+(0|Math.random()*3);
+            hands[id]=(hands[id]||[]).filter(c=>{if(c.t==='Item'&&removed<max){removed++;return false;}return true;});
+          });
+          if(victims.length)evNotes.push(`🤠 ${victims.map(id=>players[id]?.name||id).join(', ')} lost items.`);
+          break;
+        }
+        case'flood':{
+          const flooded=[];
+          Object.keys(players).forEach(id=>{
+            const before=(hands[id]||[]).length;
+            hands[id]=(hands[id]||[]).filter(c=>c.n!=='Bread');
+            if((hands[id]||[]).length<before)flooded.push(players[id]?.name||id);
+          });
+          if(flooded.length)evNotes.push(`🌊 ${flooded.join(', ')} lost Bread.`);
+          break;
+        }
+        case'rumors':{
+          const ph=Object.entries(hands).filter(([,h])=>(h||[]).some(c=>c.isPoison));
+          if(ph.length)ph.forEach(([id])=>evNotes.push(`🗣 Rumors: ${players[id]?.name||id} carries a Poison card!`));
+          else evNotes.push('🗣 Rumors: No poison spotted.');
+          break;
+        }
+        case'cold':{
+          const alive=Object.keys(players).filter(id=>players[id].status!=='eliminated');
+          const cnt=1+(0|Math.random()*2);
+          const victims=shuffle([...alive].filter(id=>{
+            const h=hands[id]||[];
+            if(h.some(c=>c.n==='Fine Wine'))return false; // passive warmth
+            const ti=h.findIndex(c=>c.isTextile&&!c.textileUsed);
+            if(ti!==-1){h[ti].textileUsed=true;hands[id]=h;return false;} // Textile used for protection
+            return true;
+          })).slice(0,cnt);
+          victims.forEach(id=>{players[id].sick=true;});
+          if(victims.length)evNotes.push(`❄ ${victims.map(id=>players[id]?.name||id).join(', ')} became sick from cold.`);
+          break;
+        }
+        case'marketday':case'foreign':break;
+        case'witchhunt':{
+          persist.witchhunt=true;
+          const alive=Object.keys(players).filter(id=>players[id].status!=='eliminated');
+          const numW=Math.max(1,Math.min(3,Math.round(alive.length*0.25)));
+          const newWitches=shuffle([...alive]).slice(0,numW);
+          const witchNames=newWitches.map(id=>players[id].name);
+          newWitches.forEach(id=>{
+            players[id].isWitch=true;
+            players[id].witchAllies=witchNames.filter(n=>n!==players[id].name);
+            // Curse a random item in their hand
+            const items=(hands[id]||[]).filter(c=>c.t==='Item');
+            if(items.length){
+              const pick=items[0|Math.random()*items.length];
+              const idx=(hands[id]||[]).findIndex(c=>c.uid===pick.uid);
+              if(idx!==-1)hands[id][idx].isCursed=true;
+            }
+          });
+          evNotes.push(`🔮 ${numW} player(s) secretly became witches.`);
+          break;
+        }
+        case'uprising':{
+          persist.uprising=true;
+          const alive=Object.keys(players).filter(id=>players[id].status!=='eliminated');
+          const weights=alive.map(id=>(players[id].scamsDealt||0)+1);
+          const total=weights.reduce((s,w)=>s+w,0);
+          let rnd=Math.random()*total,outcastId=alive[alive.length-1];
+          for(let i=0;i<alive.length;i++){rnd-=weights[i];if(rnd<=0){outcastId=alive[i];break;}}
+          players[outcastId].isOutcast=true;
+          evNotes.push(`⚔ ${players[outcastId].name} has become an Outcast! They must survive to Friday to win.`);
+          break;
+        }
+      }
+    });
+    evState.today=[...new Set(todayEv)];
+    evState.persistent=persist;
+  } else {
+    evState.today=[];
+  }
+
+  const endNotes=[];
+  const hadTrade=g.trade&&g.trade.phase!=='resolved';
+  const up={players,hands,trade:null,evState,blockedPairs:{},cardDraft};
+  if(thursdayCR)up.thursdayCR=thursdayCR;
+  if(nd>=5){
+    up.phase='ended';up.timerEnd=0;
+    applyEndGameObjectives(players,hands,{...g,thursdayCR:thursdayCR||{}}).forEach(n=>endNotes.push(n));
+  } else {up.day=nd;up.timerEnd=Date.now()+90000;}
+  await update(ref(DB,`games/${ROOM}`),up);
+  if(nd>=5){
+    await pushNotif('Game over! Secret objectives revealed.');
+    for(const n of endNotes)await pushNotif(n);
+  } else {
+    for(const n of deathNotes)await pushNotif(n);
+    if(hadTrade)await pushNotif('Day ended — active trade was cancelled.');
+    await pushNotif(`Day ${nd+1} (${DAYS[nd]}) begins!`);
+    for(const n of evNotes)await pushNotif(n);
+  }
+}
+
+// ── Use Cards from Hand ───────────────────────────────────────
+async function useCard(uid,ev){
+  ev.stopPropagation();
+  const snap=await get(ref(DB,`games/${ROOM}`));
+  const g=snap.val();
+  const hand=JSON.parse(JSON.stringify(g.hands[MY_ID]||[]));
+  const ci=hand.findIndex(c=>c.uid===uid);
+  if(ci===-1)return;
+  const c=hand[ci];
+
+  if(c.isXB){showXBPicker(uid,g);return}
+  if(c.isPoison){
+    if(c.kf===MY_ID){showPoisonPicker(uid,g);return}
+    // Holder thinks it's Medicine — cure self
+    hand.splice(ci,1);
+    await update(ref(DB,`games/${ROOM}`),{[`hands/${MY_ID}`]:hand,[`players/${MY_ID}/sick`]:false,[`players/${MY_ID}/poisoned`]:false});
+    await pushNotif(MY_NAME+': Medicine: cured.');return;
+  }
+  if(c.isRT){
+    const evToday=(g.evState?.today||[]);
+    if(evToday.includes('westward')){
+      hand.splice(ci,1);
+      await update(ref(DB,`games/${ROOM}`),{[`hands/${MY_ID}`]:hand,[`players/${MY_ID}/pts`]:(g.players[MY_ID].pts||0)+8,[`players/${MY_ID}/tradedToday`]:true});
+      await pushNotif(MY_NAME+': Railroad Ticket — heading west! +8pts, forfeits trading today.');
+    } else {
+      notify('No Westward Expansion event today. Hold onto this ticket.');
+    }
+    return;
+  }
+  if(c.isFlour){
+    const fuelI=hand.findIndex(x=>x.isCoal||x.isWood);
+    if(fuelI===-1){notify('Need Coal or Wood to fire the oven.');return;}
+    hand.splice(Math.max(ci,fuelI),1);hand.splice(Math.min(ci,fuelI),1);
+    for(let i=0;i<3;i++){const b=makeCard('Bread');if(b)hand.push(b);}
+    await update(ref(DB,`games/${ROOM}`),{[`hands/${MY_ID}`]:hand});
+    await pushNotif(MY_NAME+': Flour baked into 3 Bread!');return;
+  }
+  if(c.isSM){
+    const riI=hand.findIndex(x=>x.isRI),coI=hand.findIndex(x=>x.isCoal);
+    if(riI===-1||coI===-1){notify('Need Raw Iron + Coal to run the Steam Machine.');return;}
+    hand.splice(Math.max(riI,coI),1);hand.splice(Math.min(riI,coI),1);
+    for(let i=0;i<2;i++){const s=makeCard('Steel');if(s)hand.push(s);}
+    await update(ref(DB,`games/${ROOM}`),{[`hands/${MY_ID}`]:hand});
+    await pushNotif(MY_NAME+': Steam Machine produced 2 Steel!');return;
+  }
+  if(c.isCotton){
+    const smI=hand.findIndex(x=>x.isSM),fuelI=hand.findIndex(x=>x.isWood||x.isCoal);
+    if(smI===-1||fuelI===-1){notify('Need a Steam Machine + Wood or Coal to weave Cotton.');return;}
+    const fuel=hand[fuelI];hand.splice(fuelI,1);
+    const ti=hand.findIndex(x=>x.uid===c.uid);
+    if(ti!==-1){hand[ti]={...makeCard('Textile'),uid:c.uid};}
+    await update(ref(DB,`games/${ROOM}`),{[`hands/${MY_ID}`]:hand});
+    await pushNotif(MY_NAME+`: Cotton woven into Textile (used ${fuel.n}).`);return;
+  }
+  if(c.isTextile){
+    hand.splice(ci,1);
+    const p=g.players[MY_ID];
+    await update(ref(DB,`games/${ROOM}`),{[`hands/${MY_ID}`]:hand,[`players/${MY_ID}/pts`]:(p.pts||0)+2});
+    await pushNotif(MY_NAME+': Textile used — +2pts.');return;
+  }
+  if(c.isCrate){
+    if(c.crateItem){
+      const item={...c.crateItem};delete hand[ci].crateItem;hand.push(item);
+      await update(ref(DB,`games/${ROOM}`),{[`hands/${MY_ID}`]:hand});
+      await pushNotif(MY_NAME+`: Took ${item.n} out of Crate.`);
+    } else {
+      showCratePicker(uid,g);
+    }
+    return;
+  }
+  if(c.isCAL){showCALPicker(uid,g);return;}
+  if(c.isRAS){
+    hand.splice(ci,1);
+    const p=g.players[MY_ID];
+    await update(ref(DB,`games/${ROOM}`),{[`hands/${MY_ID}`]:hand,[`players/${MY_ID}/pts`]:(p.pts||0)-2,[`players/${MY_ID}/reportedScam`]:true});
+    await pushNotif(MY_NAME+': Reported a scam! −2pts. Scammers now have 25% arrest chance each day.');return;
+  }
+
+  let msg='';const up={};
+  if(c.isBook){
+    const r=Math.random();
+    if(r<0.15){const nc=makeCard('Inspect');if(nc)hand.push(nc);msg='Found an Inspect card!'}
+    else if(r<0.50){const nc=makeCard('Intuition');if(nc)hand.push(nc);msg='Found an Intuition card!'}
+    else msg='Nothing useful.';
+    // keep card
+    up[`hands/${MY_ID}`]=hand;
+  } else if(c.isLT){
+    const r=Math.random();
+    const pts=r<0.5?0:r<0.8?1:r<0.9?3:6;
+    hand.splice(ci,1);
+    up[`hands/${MY_ID}`]=hand;
+    up[`players/${MY_ID}/pts`]=(g.players[MY_ID].pts||0)+pts;
+    msg=`Lottery Ticket: +${pts} pts!`;
+  } else if(c.isMT){
+    const eff=['medicine','poison','alcohol','nothing'][0|Math.random()*4];
+    hand.splice(ci,1);
+    up[`hands/${MY_ID}`]=hand;
+    if(eff==='medicine'){up[`players/${MY_ID}/sick`]=false;up[`players/${MY_ID}/poisoned`]=false;msg='Miracle Tonic: cured!'}
+    else if(eff==='poison'){up[`players/${MY_ID}/status`]='eliminated';msg='Miracle Tonic: poison! Eliminated.'}
+    else msg=`Miracle Tonic: ${eff}.`;
+  } else if(c.isMed){
+    hand.splice(ci,1);
+    up[`hands/${MY_ID}`]=hand;up[`players/${MY_ID}/sick`]=false;up[`players/${MY_ID}/poisoned`]=false;
+    msg='Medicine: cured disease and any poison.';
+  } else {
+    if(!c.keepU)hand.splice(ci,1);
+    up[`hands/${MY_ID}`]=hand;
+    msg='Used.';
+  }
+  await update(ref(DB,`games/${ROOM}`),up);
+  if(msg)await pushNotif(MY_NAME+': '+msg);
+  // Consumer: +1pt per Item used per day
+  if(c.t==='Item'){
+    const snap2=await get(ref(DB,`games/${ROOM}`));const g2=snap2.val();
+    const myP2=g2.players[MY_ID];
+    if(myP2?.obj==='consumer'){
+      await update(ref(DB,`games/${ROOM}`),{
+        [`players/${MY_ID}/pts`]:(myP2.pts||0)+1,
+        [`players/${MY_ID}/objTrack/iDay`]:(myP2.objTrack?.iDay||0)+1,
+      });
+    }
+  }
+}
+
+function showXBPicker(uid,g){
+  const targets=Object.entries(g.players||{}).filter(([id,p])=>id!==MY_ID&&p.status==='active');
+  setEl('tov-ttl','⚜ Crossbow — Choose Target');
+  setEl('tov-b',`<div class="tov-pane"><div class="tov-lbl">75% hit chance · You gain a criminal record</div>
+    <div class="xbw-grid">${targets.map(([id,p])=>`<button class="ab" onclick="G.fireCrossbow(${uid},'${id}','${p.name}')">${p.name}</button>`).join('')}</div></div>`);
+  setEl('tov-f',`<button class="ab" onclick="G.closeTrade()">Cancel</button>`);
+  document.getElementById('tov').style.display='flex';tovMode='picker';
+}
+
+async function fireCrossbow(uid,targetId,targetName){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();
+  const hand=JSON.parse(JSON.stringify(g.hands[MY_ID]||[]));
+  const ci=hand.findIndex(c=>c.uid===uid);if(ci!==-1)hand.splice(ci,1);
+  const up={[`hands/${MY_ID}`]:hand,[`players/${MY_ID}/cr`]:(g.players[MY_ID].cr||0)+1};
+  let msg='';
+  if(Math.random()<0.75){
+    const th=JSON.parse(JSON.stringify(g.hands[targetId]||[]));
+    const hi=th.findIndex(c=>c.isHound);
+    if(hi!==-1){th.splice(hi,1);up[`hands/${targetId}`]=th;msg=`${targetName} protected by Hound!`}
+    else{up[`players/${targetId}/status`]='eliminated';if(g.players[MY_ID]?.obj==='lunatic')up[`players/${MY_ID}/objTrack/kills`]=(g.players[MY_ID].objTrack?.kills||0)+1;msg=`${MY_NAME}'s Crossbow eliminated ${targetName}!`}
+  } else msg=`${MY_NAME}'s Crossbow missed!`;
+  await update(ref(DB,`games/${ROOM}`),up);
+  await pushNotif(msg);
+  closeTrade();
+}
+
+function showPoisonPicker(uid,g){
+  const targets=Object.entries(g.players||{}).filter(([id,p])=>id!==MY_ID&&p.status==='active');
+  setEl('tov-ttl','☠ Administer Poison');
+  setEl('tov-b',`<div class="tov-pane"><div class="tov-lbl">Target will die next day unless they find Medicine</div>
+    <div class="xbw-grid">${targets.map(([id,p])=>`<button class="ab" onclick="G.poisonPlayer(${uid},'${id}','${p.name}')">${p.name}</button>`).join('')}</div></div>`);
+  setEl('tov-f',`<button class="ab" onclick="G.closeTrade()">Cancel</button>`);
+  document.getElementById('tov').style.display='flex';tovMode='picker';
+}
+async function poisonPlayer(uid,targetId,targetName){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();
+  const hand=JSON.parse(JSON.stringify(g.hands[MY_ID]||[]));
+  const ci=hand.findIndex(c=>c.uid===uid);if(ci!==-1)hand.splice(ci,1);
+  await update(ref(DB,`games/${ROOM}`),{[`hands/${MY_ID}`]:hand,[`players/${targetId}/poisoned`]:true,[`players/${targetId}/poisonedBy`]:MY_ID});
+  await pushNotif(`${MY_NAME} secretly administered Poison!`);
+  closeTrade();
+}
+
+function showCratePicker(uid,g){
+  const hand=g.hands[MY_ID]||[];
+  const items=hand.filter(c=>c.uid!==uid&&c.t==='Item');
+  if(!items.length){notify('No items to store in Crate.');return;}
+  setEl('tov-ttl','📦 Fill Crate');
+  setEl('tov-b',`<div class="tov-pane"><div class="tov-lbl">Choose an item to store (hidden from others)</div>
+    <div class="xbw-grid">${items.map(c=>`<button class="ab" onclick="G.fillCrate(${uid},${c.uid})">${c.n}</button>`).join('')}</div></div>`);
+  setEl('tov-f',`<button class="ab" onclick="G.closeTrade()">Cancel</button>`);
+  document.getElementById('tov').style.display='flex';tovMode='picker';
+}
+async function fillCrate(uid,itemUid){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();
+  const hand=JSON.parse(JSON.stringify(g.hands[MY_ID]||[]));
+  const ci=hand.findIndex(c=>c.uid===uid);
+  const ii=hand.findIndex(c=>c.uid===itemUid);
+  if(ci===-1||ii===-1)return;
+  hand[ci].crateItem={...hand[ii]};hand.splice(ii,1);
+  await update(ref(DB,`games/${ROOM}`),{[`hands/${MY_ID}`]:hand});
+  closeTrade();
+}
+function showCALPicker(uid,g){
+  const targets=Object.entries(g.players||{}).filter(([id,p])=>id!==MY_ID&&p.status==='active');
+  setEl('tov-ttl','⚖ Class Action Lawsuit');
+  setEl('tov-b',`<div class="tov-pane"><div class="tov-lbl">Nominate a defendant — if another player also accuses them, they are arrested</div>
+    <div class="xbw-grid">${targets.map(([id,p])=>`<button class="ab" onclick="G.useClassAction(${uid},'${id}')">${p.name}</button>`).join('')}</div></div>`);
+  setEl('tov-f',`<button class="ab" onclick="G.closeTrade()">Cancel</button>`);
+  document.getElementById('tov').style.display='flex';tovMode='picker';
+}
+async function useClassAction(uid,targetId){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();
+  const hand=JSON.parse(JSON.stringify(g.hands[MY_ID]||[]));
+  const ci=hand.findIndex(c=>c.uid===uid);if(ci!==-1)hand.splice(ci,1);
+  const cas={...(g.classActions||{})};
+  if(!cas[targetId])cas[targetId]={};
+  cas[targetId][MY_ID]=true;
+  const accusers=Object.keys(cas[targetId]);
+  const up={[`hands/${MY_ID}`]:hand,classActions:cas};
+  if(accusers.length>=2){
+    up[`players/${targetId}/status`]='arrested';
+    up[`players/${targetId}/cr`]=(g.players[targetId]?.cr||0)+1;
+    up[`players/${targetId}/wasArrested`]=true;
+    delete cas[targetId];up.classActions=cas;
+    await update(ref(DB,`games/${ROOM}`),up);
+    await pushNotif(`Class action succeeded! ${g.players[targetId]?.name} arrested.`);
+  } else {
+    await update(ref(DB,`games/${ROOM}`),up);
+    await pushNotif(`${MY_NAME} filed a class action against ${g.players[targetId]?.name}. Awaiting co-accuser.`);
+  }
+  closeTrade();
+}
+async function trUseDisc(){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();const t=g.trade;
+  const isInit=MY_ID===t.init;
+  const myCards=isInit?(t.iCards||[]):(t.tCards||[]);
+  const otherCards=isInit?(t.tCards||[]):(t.iCards||[]);
+  const rev={...t.revealed};
+  const myUnrev=myCards.filter(u=>!rev[u]);
+  const otUnrev=otherCards.filter(u=>!rev[u]);
+  if(!myUnrev.length&&!otUnrev.length){notify('Nothing left to reveal.');return;}
+  await consumeMyCard(g,'Discussion');
+  if(myUnrev.length)rev[myUnrev[0]]='color';
+  if(otUnrev.length)rev[otUnrev[0]]='color';
+  await update(ref(DB,`games/${ROOM}`),{'trade/revealed':rev});
+}
+async function trUseInteg(){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();const t=g.trade;
+  const isInit=MY_ID===t.init;
+  const myCards=isInit?(t.iCards||[]):(t.tCards||[]);
+  const unrev=myCards.filter(u=>!(t.revealed||{})[u]);
+  if(!unrev.length){notify('All your offered cards are already revealed.');return;}
+  await consumeMyCard(g,'Integrity');
+  const rev={...(t.revealed||{})};rev[unrev[0]]='full';
+  await update(ref(DB,`games/${ROOM}`),{'trade/revealed':rev});
+}
+
+async function trUseKnife(){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();const t=g.trade;
+  if(!t||t.phase!=='negotiating')return;
+  const isInit=MY_ID===t.init;
+  const otherId=isInit?t.tgt:t.init;
+  const otherName=isInit?t.tgtName:t.initName;
+  await consumeMyCard(g,'Knife');
+  if(Math.random()<0.75){
+    const oh=JSON.parse(JSON.stringify(g.hands[otherId]||[]));
+    const hi=oh.findIndex(c=>c.isHound);
+    if(hi!==-1){
+      oh.splice(hi,1);
+      await update(ref(DB,`games/${ROOM}`),{[`hands/${otherId}`]:oh,'trade/phase':'resolved','trade/result':`${MY_NAME} attempted to stab ${otherName} but Hound intervened!`});
+      await pushNotif(`${MY_NAME} tried to stab ${otherName} — Hound blocked it!`);
+    } else {
+      const up={[`players/${otherId}/status`]:'eliminated','trade/phase':'resolved','trade/result':`${MY_NAME} stabbed ${otherName}!`};
+      if(g.players[MY_ID]?.obj==='lunatic')up[`players/${MY_ID}/objTrack/kills`]=(g.players[MY_ID].objTrack?.kills||0)+1;
+      await update(ref(DB,`games/${ROOM}`),up);
+      await pushNotif(`${MY_NAME} stabbed ${otherName} during a trade! They are eliminated.`);
+    }
+  } else {
+    await update(ref(DB,`games/${ROOM}`),{'trade/phase':'resolved','trade/result':`${MY_NAME} attempted to stab ${otherName} but missed!`});
+    await pushNotif(`${MY_NAME} tried to stab ${otherName} but missed!`);
+  }
+}
+
+// ── Trade (invite → live negotiation) ─────────────────────────
+async function openTrade(targetId){
+  const snap=await get(ref(DB,`games/${ROOM}`));
+  const g=snap.val();
+  if(g.trade){notify('A trade is already in progress.');return}
+  const pairKey=[MY_ID,targetId].sort().join('|');
+  if((g.blockedPairs||{})[pairKey]){notify('You two declined a trade today and cannot trade again until tomorrow.');return}
+  const myAttempts=(g.players[MY_ID]?.tradeAttemptsToday||0);
+  if(myAttempts>=3){notify('You have used all 3 trade attempts for today.');return}
+  const tp=g.players[targetId];
+  await update(ref(DB,`games/${ROOM}`),{[`players/${MY_ID}/tradeAttemptsToday`]:myAttempts+1,trade:{
+    init:MY_ID,initName:MY_NAME,
+    tgt:targetId,tgtName:tp.name,
+    phase:'invited',
+    iCards:[],iPoints:0,
+    tCards:[],tPoints:0,
+    iLocked:false,tLocked:false,
+    revealed:{},richUncle:0,lawyer:false,result:null
+  }});
+  await pushNotif(`${MY_NAME} sent a trade invitation to ${tp.name}`);
+  document.getElementById('tov').style.display='flex';tovMode='trade';
+}
+
+async function acceptInvite(){
+  await update(ref(DB,`games/${ROOM}`),{'trade/phase':'negotiating'});
+}
+
+function processTrade(g){
+  const t=g.trade;
+  const ov=document.getElementById('tov');
+  const tchatEl=document.getElementById('tchat');
+  if(!t){
+    if(tchatEl)tchatEl.style.display='none';
+    if(tovMode==='trade'){ov.style.display='none';tovMode='';}
+    return;
+  }
+  const isMe=t.init===MY_ID||t.tgt===MY_ID;
+  if(t.phase==='resolved'||t.phase==='executing'){
+    if(tchatEl)tchatEl.style.display='none';
+    if(isMe){ov.style.display='flex';tovMode='trade';
+      if(t.phase==='resolved')showTradeResult(t);
+      else{setEl('tov-ttl','⚙ Processing...');setEl('tov-b','<div style="text-align:center;padding:20px;color:#9a8ab0">Trade is being finalized…</div>');setEl('tov-f','');}
+    }
+    return;
+  }
+  if(t.phase==='invited'){
+    if(tchatEl)tchatEl.style.display='none';
+    if(t.tgt===MY_ID){ov.style.display='flex';tovMode='trade';renderInvitation(g);}
+    else if(t.init===MY_ID){ov.style.display='flex';tovMode='trade';renderInviteSent(g);}
+    return;
+  }
+  if(t.phase==='negotiating'&&isMe){
+    ov.style.display='flex';tovMode='trade';
+    renderNegotiate(g);
+    if(tchatEl){tchatEl.style.display='block';updateTradeChat(t);}
+  }
+}
+
+function showTradeResult(t){
+  const d=t.resultData;
+  if(!d){showResult(t.result||'Trade resolved.');return;}
+  const isInit=MY_ID===t.init;
+  const me=isInit?d.init:d.tgt;
+  const them=isInit?d.tgt:d.init;
+  const fmt=n=>(n>=0?'+':'')+n+'pts';
+  const pcls=n=>n>=0?'pos':'neg';
+  const cardList=arr=>arr.length?arr.map(c=>c.n).join(', '):'No cards received';
+  setEl('tov-b',`<div style="padding:12px 8px">
+    <div style="font-size:10px;color:#7ab87a;text-align:center;margin-bottom:10px;letter-spacing:.8px;text-transform:uppercase">⚜ Trade Complete</div>
+    <div class="trade-result">
+      <div class="tr-side">
+        <div class="tr-side-name">You · ${escHtml(me.name)}</div>
+        <div class="tr-side-pts ${pcls(me.netPts)}">${fmt(me.netPts)}</div>
+        <div class="tr-side-cards">${escHtml(cardList(me.cards))}</div>
+      </div>
+      <div class="tr-side">
+        <div class="tr-side-name">${escHtml(them.name)}</div>
+        <div class="tr-side-pts ${pcls(them.netPts)}">${fmt(them.netPts)}</div>
+        <div class="tr-side-cards">${escHtml(cardList(them.cards))}</div>
+      </div>
+    </div>
+    ${d.notes.length?`<div style="font-size:10px;color:#b07ad0;text-align:center;margin-top:6px">${d.notes.map(escHtml).join(' · ')}</div>`:''}
+  </div>`);
+  setEl('tov-f',`<button class="ab gld" onclick="G.closeTrade()">Continue</button>`);
+}
+
+function updateTradeChat(t){
+  const el=document.getElementById('tchat-msgs');
+  if(!el)return;
+  const msgs=Object.values(t.tchat||{}).sort((a,b)=>a.ts-b.ts).slice(-40);
+  const atBottom=el.scrollHeight-el.scrollTop<=el.clientHeight+30;
+  el.innerHTML=msgs.map(m=>`<div class="tchat-msg"><span class="cn">${escHtml(m.name)}:</span> ${escHtml(m.msg)}</div>`).join('');
+  if(atBottom)el.scrollTop=el.scrollHeight;
+}
+
+async function sendTradeChat(){
+  const inp=document.getElementById('tchat-inp');
+  const msg=(inp?.value||'').trim();
+  if(!msg)return;
+  inp.value='';
+  const cr=push(ref(DB,`games/${ROOM}/trade/tchat`));
+  await set(cr,{pid:MY_ID,name:MY_NAME,msg,ts:Date.now()});
+}
+
+function renderInvitation(g){
+  const t=g.trade;
+  setEl('tov-ttl','⚜ Trade Invitation');
+  setEl('tov-b',`<div class="rbox">
+    <div style="font-size:22px;color:#c49a22;margin-bottom:12px">⚜</div>
+    <div style="font-size:14px;margin-bottom:8px"><strong>${t.initName}</strong> is requesting a trade with you.</div>
+    <div style="font-size:11px;color:#7ab87a;font-style:italic;line-height:1.6">If you accept, a live negotiation opens where both of you can add cards and agree on terms before committing.</div>
+  </div>`);
+  setEl('tov-f',`<button class="ab red" onclick="G.declineTrade()">Decline</button><button class="ab gld" onclick="G.acceptInvite()">Accept →</button>`);
+}
+
+function renderInviteSent(g){
+  const t=g.trade;
+  setEl('tov-ttl','⚜ Invitation Sent');
+  setEl('tov-b',`<div class="rbox">
+    <div style="font-size:22px;color:#c49a22;margin-bottom:12px">⚜</div>
+    <div style="font-size:13px;color:#f0dbb0">Waiting for <strong>${t.tgtName}</strong> to accept your trade invitation...</div>
+  </div>`);
+  setEl('tov-f',`<button class="ab red" onclick="G.declineTrade()">Cancel Invitation</button>`);
+}
+
+function renderNegotiate(g){
+  const t=g.trade;
+  const isInit=MY_ID===t.init;
+  const otherId=isInit?t.tgt:t.init;
+  const otherName=isInit?t.tgtName:t.initName;
+  const myHand=g.hands[MY_ID]||[];
+  const otherHand=g.hands[otherId]||[];
+  const myCards=isInit?(t.iCards||[]):(t.tCards||[]);
+  const otherCards=isInit?(t.tCards||[]):(t.iCards||[]);
+  const myPts=isInit?(t.iPoints||0):(t.tPoints||0);
+  const otherPts=isInit?(t.tPoints||0):(t.iPoints||0);
+  const myLocked=isInit?t.iLocked:t.tLocked;
+  const otherLocked=isInit?t.tLocked:t.iLocked;
+  const rev=t.revealed||{};
+  const toggleFn=isInit?'G._toggleI':'G._toggleT';
+  const adjFn=isInit?'G._adjIP':'G._adjTP';
+
+  // My offer panel
+  const mySelCards=myHand.filter(c=>myCards.includes(c.uid));
+  const myOfferH=mySelCards.length
+    ?mySelCards.map(c=>`<div style="position:relative;display:inline-block">${smCardHTML(c,MY_ID)}`
+        +(!myLocked?`<div onclick="${toggleFn}(${c.uid})" style="position:absolute;top:-4px;right:-4px;background:#b71c1c;color:#fff;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer">✕</div>`:'')
+        +'</div>').join('')
+    :'<div style="color:#3a7a4a;font-style:italic;font-size:11px">Click cards below to add</div>';
+  const myHandH=!myLocked?myHand.map(c=>hcHTML(c,MY_ID,{selected:myCards.includes(c.uid),onclick:`${toggleFn}(${c.uid})`,noUse:true})).join(''):'';
+
+  // Their offer panel
+  const otherSelCards=otherHand.filter(c=>otherCards.includes(c.uid));
+  const otherOfferH=otherSelCards.length
+    ?otherSelCards.map(c=>{
+        const r=rev[c.uid];
+        if(r==='full')return smCardHTML(c,MY_ID);
+        if(r==='color')return`<div class="revcol" style="background:${BGCOL[c.bg]||'#fff'}">${BGNM[c.bg]}</div>`;
+        if(c.faceUp)return smCardHTML(c,MY_ID);
+        return`<div class="facedn">⚜</div>`;
+      }).join('')
+    :'<div style="color:#3a7a4a;font-size:11px;font-style:italic">Nothing yet</div>';
+
+  // Action cards — available to both players
+  const hasInt=myHand.some(c=>c.n==='Intuition');
+  const hasIns=myHand.some(c=>c.n==='Inspect');
+  const hasPol=myHand.some(c=>c.n==='Call the Police');
+  const hasCM=myHand.some(c=>c.isCM);
+  const hasCU=myHand.some(c=>c.isCU)&&!t.richUncle;
+  const hasCL=myHand.some(c=>c.isCL)&&!t.lawyer;
+  const hasDisc=myHand.some(c=>c.isDisc);
+  const hasInteg=myHand.some(c=>c.isInteg);
+  const hasKnife=myHand.some(c=>c.isKnife);
+  const anyAct=hasInt||hasIns||hasPol||hasCM||hasCU||hasCL||hasDisc||hasInteg||hasKnife;
+
+  setEl('tov-ttl',`⚜ Trade with ${otherName}`);
+  setEl('tov-b',`
+    <div class="tov-pane">
+      <div class="tov-lbl">Your offer ${myLocked?'🔒 Locked in':''}</div>
+      <div class="tov-cards">${myOfferH}</div>
+      ${!myLocked
+        ?`<div class="tpts"><button class="padj" onclick="${adjFn}(-1)">−</button><span>${myPts}pts</span><button class="padj" onclick="${adjFn}(1)">+</button></div>`
+        :(myPts>0?`<div style="font-size:12px;color:#c49a22;margin-top:5px">+${myPts}pts</div>`:'')}
+      ${!myLocked&&myHandH?`<div style="margin-top:7px"><div class="tov-lbl">Your hand — click to add</div><div class="hand-scroll">${myHandH}</div></div>`:''}
+    </div>
+    <div class="tov-pane">
+      <div class="tov-lbl">${otherName}'s offer ${otherLocked?'🔒 Locked in':'⏳ editing...'}</div>
+      <div class="tov-cards">${otherOfferH}</div>
+      ${otherPts>0?`<div style="font-size:12px;color:#c49a22;margin-top:5px">+${otherPts}pts</div>`:''}
+      ${t.richUncle?`<div style="color:#c49a22;font-size:11px;margin-top:4px">★ Rich Uncle: +${t.richUncle}pts bonus</div>`:''}
+      ${t.lawyer?`<div style="color:#90caf9;font-size:11px;margin-top:4px">⚖ Lawyer active — Scam → arrest</div>`:''}
+    </div>
+    ${anyAct?`<div class="tov-pane"><div class="tov-lbl">Action cards</div><div class="act-btns">
+      ${hasInt?`<button class="ab" onclick="G.trUseInt()">Intuition</button>`:''}
+      ${hasIns?`<button class="ab" onclick="G.trUseIns()">Inspect</button>`:''}
+      ${hasPol?`<button class="ab red" onclick="G.trUsePol()">Call Police</button>`:''}
+      ${hasCM?`<button class="ab" onclick="G.trUseCM()">Consult Mother</button>`:''}
+      ${hasCU?`<button class="ab" onclick="G.trUseCU()">Rich Uncle (+2)</button>`:''}
+      ${hasCL?`<button class="ab" onclick="G.trUseCL()">Consult Lawyer</button>`:''}
+      ${hasDisc?`<button class="ab" onclick="G.trUseDisc()">Discussion</button>`:''}
+      ${hasInteg?`<button class="ab" onclick="G.trUseInteg()">Integrity</button>`:''}
+      ${hasKnife?`<button class="ab red" onclick="G.trUseKnife()">🔪 Stab!</button>`:''}
+    </div></div>`:''}
+  `);
+  const lockBtn=myLocked
+    ?`<button class="ab" onclick="G.lockIn()">Unlock ↩</button>`
+    :`<button class="ab gld" onclick="G.lockIn()">Lock In ✓</button>`;
+  setEl('tov-f',`<button class="ab red" onclick="G.declineTrade()">Decline ✗</button>${lockBtn}`);
+}
+
+async function _toggleI(uid){
+  const snap=await get(ref(DB,`games/${ROOM}`));const t=snap.val().trade;
+  const cards=[...(t.iCards||[])];const i=cards.indexOf(uid);
+  if(i!==-1)cards.splice(i,1);else cards.push(uid);
+  await update(ref(DB,`games/${ROOM}`),{'trade/iCards':cards,'trade/iLocked':false,'trade/tLocked':false});
+}
+async function _adjIP(d){
+  const snap=await get(ref(DB,`games/${ROOM}`));
+  const pts=Math.max(0,(snap.val().trade.iPoints||0)+d);
+  await update(ref(DB,`games/${ROOM}`),{'trade/iPoints':pts,'trade/iLocked':false,'trade/tLocked':false});
+}
+async function _toggleT(uid){
+  const snap=await get(ref(DB,`games/${ROOM}`));const t=snap.val().trade;
+  const cards=[...(t.tCards||[])];const i=cards.indexOf(uid);
+  if(i!==-1)cards.splice(i,1);else cards.push(uid);
+  await update(ref(DB,`games/${ROOM}`),{'trade/tCards':cards,'trade/tLocked':false,'trade/iLocked':false});
+}
+async function _adjTP(d){
+  const snap=await get(ref(DB,`games/${ROOM}`));
+  const pts=Math.max(0,(snap.val().trade.tPoints||0)+d);
+  await update(ref(DB,`games/${ROOM}`),{'trade/tPoints':pts,'trade/tLocked':false,'trade/iLocked':false});
+}
+
+async function lockIn(){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();const t=g.trade;
+  if(!t||t.phase!=='negotiating')return;
+  const isInit=MY_ID===t.init;
+  const myLocked=isInit?t.iLocked:t.tLocked;
+  if(!myLocked){
+    const empty=!(t.iCards||[]).length&&!(t.tCards||[]).length&&!(t.iPoints||0)&&!(t.tPoints||0);
+    if(empty){notify('Nothing is being exchanged — add cards or points first.');return;}
+  }
+  const myField=isInit?'trade/iLocked':'trade/tLocked';
+  if(myLocked){await update(ref(DB,`games/${ROOM}`),{[myField]:false});return}
+  await update(ref(DB,`games/${ROOM}`),{[myField]:true});
+  const snap2=await get(ref(DB,`games/${ROOM}`));
+  const g2=snap2.val();
+  if(g2.trade?.phase==='negotiating'&&g2.trade?.iLocked&&g2.trade?.tLocked)await executeTradeNow(g2);
+}
+
+async function executeTradeNow(g){
+  const t=g.trade;
+  if(!t||t.phase==='resolved')return;
+  // Claim execution atomically. If p===null the local cache is cold — pass through and let
+  // the server retry with the real value. This prevents the double-execute race between
+  // lockIn and runBotTick step 2 without blocking on a stale cache read.
+  const claim=await runTransaction(ref(DB,`games/${ROOM}/trade/phase`),p=>{
+    if(p!==null&&p!=='negotiating')return; // abort only when we know it's already claimed/resolved
+    return'executing';
+  });
+  if(!claim.committed)return;
+  const initId=t.init,tgtId=t.tgt;
+  const ip={...g.players[initId]},tp={...g.players[tgtId]};
+  const iHand=JSON.parse(JSON.stringify(g.hands[initId]||[]));
+  const tHand=JSON.parse(JSON.stringify(g.hands[tgtId]||[]));
+  const iCards=iHand.filter(c=>(t.iCards||[]).includes(c.uid));
+  const tCards=tHand.filter(c=>(t.tCards||[]).includes(c.uid));
+  const notes=[];
+  const iOrigPts=ip.pts,tOrigPts=tp.pts;
+  const evToday=(g.evState?.today||[]);
+  const evPersist=(g.evState?.persistent||{});
+  const tradeMult=(evToday.includes('marketday')||evToday.includes('foreign'))?2:1;
+  const hasTariff=evToday.includes('tariff')||evPersist.tariff;
+  const hasCrisis=evToday.includes('crisis')||(evPersist.crisisLeft>0);
+  iCards.forEach(c=>{ip.pts+=(c.d||0)*tradeMult;tp.pts+=(c.r||0)*tradeMult;if(hasCrisis&&c.t==='Trade'){ip.pts-=1;tp.pts-=1;}});
+  tCards.forEach(c=>{tp.pts+=(c.d||0)*tradeMult;ip.pts+=(c.r||0)*tradeMult;if(hasCrisis&&c.t==='Trade'){ip.pts-=1;tp.pts-=1;}});
+  const iP=t.iPoints||0,tP=t.tPoints||0;
+  ip.pts-=iP;tp.pts+=iP;tp.pts-=tP;ip.pts+=tP;
+  if(tradeMult>1)notes.push(`×${tradeMult} trade value`);
+  if(hasTariff){ip.pts-=2;tp.pts-=2;notes.push('Tariff −2pts each');}
+  if(t.richUncle){tp.pts+=t.richUncle;notes.push(`Rich Uncle: ${tp.name} +${t.richUncle}pts`)}
+  if(t.lawyer){
+    const pScam=iCards.some(c=>c.t==='Scam');
+    if(pScam){ip.pts-=5;ip.cr=(ip.cr||0)+1;ip.status='arrested';ip.wasArrested=true;notes.push(`${ip.name} arrested by lawyer`)}
+  }
+  iCards.forEach(c=>{const i=iHand.findIndex(x=>x.uid===c.uid);if(i!==-1)iHand.splice(i,1);tHand.push(c)});
+  tCards.forEach(c=>{const i=tHand.findIndex(x=>x.uid===c.uid);if(i!==-1)tHand.splice(i,1);iHand.push(c)});
+  iCards.forEach(c=>{if(c.isCS){const nc=makeCard('Debts');if(nc){tHand.push(nc);notes.push(`${tp.name} got Debts`)}}});
+  tCards.forEach(c=>{if(c.isCS){const nc=makeCard('Debts');if(nc){iHand.push(nc);notes.push(`${ip.name} got Debts`)}}});
+  // Track scammers for Class Action / Report a Scam
+  const iScamCards=iCards.filter(c=>c.t==='Scam');
+  const tScamCards=tCards.filter(c=>c.t==='Scam');
+  // Scam victims don't get tradedToday credit — only the scammer does
+  ip.tradedToday=!tScamCards.length||iScamCards.length>0;
+  tp.tradedToday=!iScamCards.length||tScamCards.length>0;
+  if(iScamCards.length){if(!tp.scammedBy)tp.scammedBy={};tp.scammedBy[initId]=true;ip.scamsDealt=(ip.scamsDealt||0)+iScamCards.length;}
+  if(tScamCards.length){if(!ip.scammedBy)ip.scammedBy={};ip.scammedBy[tgtId]=true;tp.scamsDealt=(tp.scamsDealt||0)+tScamCards.length;}
+  // Scam victims: 50% chance to gain a random action card
+  if(iScamCards.length&&Math.random()<0.5){const ac=CD.filter(c=>c.t==='Action');const tmpl=ac[0|Math.random()*ac.length];const nc=makeCard(tmpl?.n);if(nc){tHand.push(nc);notes.push(`${tp.name} received an action card after being scammed`);}}
+  if(tScamCards.length&&Math.random()<0.5){const ac=CD.filter(c=>c.t==='Action');const tmpl=ac[0|Math.random()*ac.length];const nc=makeCard(tmpl?.n);if(nc){iHand.push(nc);notes.push(`${ip.name} received an action card after being scammed`);}}
+  // Witch curse: trading partner of a witch gets flagged for end-of-day curse
+  if(ip.isWitch&&!tp.isWitch)tp.tradedWithWitch=true;
+  if(tp.isWitch&&!ip.isWitch)ip.tradedWithWitch=true;
+  // Cursed items passed in trade curse the recipient (witches immune)
+  if(iCards.some(c=>c.isCursed)&&!tp.isWitch)tp.cursed=true;
+  if(tCards.some(c=>c.isCursed)&&!ip.isWitch)ip.cursed=true;
+
+  // ── Secret objective effects ──────────────────────────────────
+  const day=g.day||0;
+  if(!ip.objTrack)ip.objTrack={tWith:{},rejMe:{},decGood:0,cartel:0,iDay:0,agr:0,bDays:{},thrift:0};
+  if(!tp.objTrack)tp.objTrack={tWith:{},rejMe:{},decGood:0,cartel:0,iDay:0,agr:0,bDays:{},thrift:0};
+  const iTW={...(ip.objTrack.tWith||{})};const tTW={...(tp.objTrack.tWith||{})};
+  const iPrev=(iTW[tgtId]||[]).length;const tPrev=(tTW[initId]||[]).length;
+  if(!iTW[tgtId])iTW[tgtId]=[];if(!tTW[initId])tTW[initId]=[];
+  const iNewDay=!iTW[tgtId].includes(day);const tNewDay=!tTW[initId].includes(day);
+  if(iNewDay)iTW[tgtId].push(day);if(tNewDay)tTW[initId].push(day);
+  // Thrifter
+  if(ip.obj==='thrifter'&&tCards.length>1){const b=tCards.length-1;ip.pts+=b;ip.objTrack.thrift=(ip.objTrack.thrift||0)+b;notes.push(`${ip.name} (Thrifter) +${b}pts`);}
+  if(tp.obj==='thrifter'&&iCards.length>1){const b=iCards.length-1;tp.pts+=b;tp.objTrack.thrift=(tp.objTrack.thrift||0)+b;notes.push(`${tp.name} (Thrifter) +${b}pts`);}
+  // Cartel
+  const iScam=iCards.filter(c=>c.t==='Scam');const tScam=tCards.filter(c=>c.t==='Scam');
+  if(ip.obj==='cartel'&&iScam.length&&!t.lawyer){const b=iScam.length*3;ip.pts+=b;ip.objTrack.cartel=(ip.objTrack.cartel||0)+iScam.length;notes.push(`${ip.name} (Cartel) +${b}pts`);}
+  if(tp.obj==='cartel'&&tScam.length&&!t.lawyer){const b=tScam.length*3;tp.pts+=b;tp.objTrack.cartel=(tp.objTrack.cartel||0)+tScam.length;notes.push(`${tp.name} (Cartel) +${b}pts`);}
+  // Farmer
+  const iBread=iCards.filter(c=>c.n==='Bread').length;const tBread=tCards.filter(c=>c.n==='Bread').length;
+  if(ip.obj==='farmer'&&iBread){const b=iBread*3;ip.pts+=b;ip.objTrack.agr=(ip.objTrack.agr||0)+iBread;notes.push(`${ip.name} (Farmer) +${b}pts`);}
+  if(tp.obj==='farmer'&&tBread){const b=tBread*3;tp.pts+=b;tp.objTrack.agr=(tp.objTrack.agr||0)+tBread;notes.push(`${tp.name} (Farmer) +${b}pts`);}
+  // Hustler
+  if(ip.obj==='hustler'&&iPrev===1&&iNewDay){ip.pts+=2;tp.pts-=2;notes.push(`${ip.name} (Hustler) stole 2pts from ${tp.name}`);}
+  if(tp.obj==='hustler'&&tPrev===1&&tNewDay){tp.pts+=2;ip.pts-=2;notes.push(`${tp.name} (Hustler) stole 2pts from ${ip.name}`);}
+  // Businessman
+  if(ip.obj==='business'&&(ip.objTrack.rejMe||{})[tgtId]){ip.pts+=4;notes.push(`${ip.name} (Businessman) +4pts`);}
+  if(tp.obj==='business'&&(tp.objTrack.rejMe||{})[initId]){tp.pts+=4;notes.push(`${tp.name} (Businessman) +4pts`);}
+  // Barber
+  if(ip.obj==='barber'&&ip.objTarget===tgtId&&iNewDay){ip.pts+=3;ip.objTrack.bDays={...(ip.objTrack.bDays||{}),[day]:true};notes.push(`${ip.name} (Barber) +3pts`);}
+  if(tp.obj==='barber'&&tp.objTarget===initId&&tNewDay){tp.pts+=3;tp.objTrack.bDays={...(tp.objTrack.bDays||{}),[day]:true};notes.push(`${tp.name} (Barber) +3pts`);}
+  ip.objTrack.tWith=iTW;tp.objTrack.tWith=tTW;
+  // Con Artist: +4pts for including scam when partner does not
+  if(ip.obj==='conartist'&&iScam.length&&!tScam.length&&!t.lawyer){const b=4;ip.pts+=b;ip.objTrack.conScams=(ip.objTrack.conScams||0)+1;notes.push(`${ip.name} (Con Artist) +${b}pts`);}
+  if(tp.obj==='conartist'&&tScam.length&&!iScam.length&&!t.lawyer){const b=4;tp.pts+=b;tp.objTrack.conScams=(tp.objTrack.conScams||0)+1;notes.push(`${tp.name} (Con Artist) +${b}pts`);}
+  // Arms Dealer: track weapons given away
+  const WNAMES=['Crossbow','Dagger','Knife'];
+  if(ip.obj==='armsdealer'){const ws=iCards.filter(c=>WNAMES.includes(c.n)).length;if(ws)ip.objTrack.weaponsSold=(ip.objTrack.weaponsSold||0)+ws;}
+  if(tp.obj==='armsdealer'){const ws=tCards.filter(c=>WNAMES.includes(c.n)).length;if(ws)tp.objTrack.weaponsSold=(tp.objTrack.weaponsSold||0)+ws;}
+  // Blacksmith: track Trade-type cards in participated trades
+  const tradeCardCount=[...iCards,...tCards].filter(c=>c.t==='Trade').length;
+  if(tradeCardCount){
+    if(ip.obj==='blacksmith')ip.objTrack.contracts=(ip.objTrack.contracts||0)+tradeCardCount;
+    if(tp.obj==='blacksmith')tp.objTrack.contracts=(tp.objTrack.contracts||0)+tradeCardCount;
+  }
+  // Government Agent: detect evil role when trading with one
+  const EVIL=['hustler','conartist','armsdealer','lunatic','cartel','rebel','assassin'];
+  if(ip.obj==='govagent'&&EVIL.includes(tp.obj)){if(!ip.objTrack.detectedEvil)ip.objTrack.detectedEvil={};ip.objTrack.detectedEvil[tgtId]=tp.obj;}
+  if(tp.obj==='govagent'&&EVIL.includes(ip.obj)){if(!tp.objTrack.detectedEvil)tp.objTrack.detectedEvil={};tp.objTrack.detectedEvil[initId]=ip.obj;}
+  // Wholesaler: count completed trades per day
+  ip.tradeCountToday=(ip.tradeCountToday||0)+1;
+  tp.tradeCountToday=(tp.tradeCountToday||0)+1;
+
+  // 25% sick transmission when trading with a sick player
+  if(ip.sick&&!tp.sick&&Math.random()<0.25){tp.sick=true;notes.push(`${tp.name} caught disease from ${ip.name}`);}
+  if(tp.sick&&!ip.sick&&Math.random()<0.25){ip.sick=true;notes.push(`${ip.name} caught disease from ${tp.name}`);}
+
+  const iNetPts=ip.pts-iOrigPts,tNetPts=tp.pts-tOrigPts;
+  const result=`Trade: ${ip.name} ${iNetPts>=0?'+':''}${iNetPts}pts · ${tp.name} ${tNetPts>=0?'+':''}${tNetPts}pts${notes.length?' · '+notes.join(', '):''}`;
+  const resultData={
+    init:{name:ip.name,netPts:iNetPts,cards:tCards.map(c=>({n:c.n,bg:c.bg}))},
+    tgt:{name:tp.name,netPts:tNetPts,cards:iCards.map(c=>({n:c.n,bg:c.bg}))},
+    notes
+  };
+  await update(ref(DB,`games/${ROOM}`),{
+    [`players/${initId}`]:ip,[`players/${tgtId}`]:tp,
+    [`hands/${initId}`]:iHand,[`hands/${tgtId}`]:tHand,
+    'trade/phase':'resolved','trade/result':result,'trade/resultData':resultData
+  });
+  await pushNotif(result);
+}
+
+// Action cards — both players can use these during negotiation
+async function trUseInt(){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();const t=g.trade;
+  const isInit=MY_ID===t.init;
+  const otherCards=isInit?(t.tCards||[]):(t.iCards||[]);
+  const rev0=t.revealed||{};
+  const unrev=otherCards.filter(uid=>!rev0[uid]);
+  if(!unrev.length){notify('Nothing new to reveal.');return}
+  const rev={...rev0};rev[unrev[0]]='color';
+  await consumeMyCard(g,'Intuition');
+  await update(ref(DB,`games/${ROOM}`),{'trade/revealed':rev});
+}
+async function trUseIns(){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();const t=g.trade;
+  const isInit=MY_ID===t.init;
+  const otherCards=isInit?(t.tCards||[]):(t.iCards||[]);
+  const rev0=t.revealed||{};
+  const unrev=otherCards.filter(uid=>{const r=rev0[uid];return!r||r==='color'});
+  if(!unrev.length){notify('Nothing more to reveal.');return}
+  const rev={...rev0};rev[unrev[0]]='full';
+  await consumeMyCard(g,'Inspect');
+  await update(ref(DB,`games/${ROOM}`),{'trade/revealed':rev});
+}
+async function trUsePol(){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();const t=g.trade;
+  const isInit=MY_ID===t.init;
+  const otherId=isInit?t.tgt:t.init;
+  const otherCards=isInit?(t.tCards||[]):(t.iCards||[]);
+  const otherHand=g.hands[otherId]||[];
+  const conf=otherCards.some(uid=>{const c=otherHand.find(x=>x.uid==uid);return c&&c.t==='Scam'&&(t.revealed||{})[uid]==='full';});
+  if(!conf){notify('Inspect a Scam card from their offer first.');return}
+  const op=g.players[otherId];
+  await consumeMyCard(g,'Call the Police');
+  await update(ref(DB,`games/${ROOM}`),{
+    [`players/${otherId}/pts`]:(op.pts||0)-5,
+    [`players/${otherId}/cr`]:(op.cr||0)+1,
+    [`players/${otherId}/status`]:'arrested',
+    [`players/${otherId}/wasArrested`]:true,
+    'trade/phase':'resolved','trade/result':`${op.name} arrested! −5pts, +1 record.`
+  });
+  await pushNotif(`${op.name} arrested by ${MY_NAME}!`);
+}
+async function trUseCM(){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();const t=g.trade;
+  const isInit=MY_ID===t.init;
+  const otherId=isInit?t.tgt:t.init;
+  const otherCards=isInit?(t.tCards||[]):(t.iCards||[]);
+  const otherHand=g.hands[otherId]||[];
+  const hasScam=otherCards.some(uid=>{const c=otherHand.find(x=>x.uid==uid);return c&&c.t==='Scam'});
+  await consumeMyCard(g,'Consult Mother');
+  notify(hasScam?'Your mother senses deception!':'Your mother is satisfied — no Scam cards.');
+}
+async function trUseCU(){
+  const g=(await get(ref(DB,`games/${ROOM}`))).val();
+  await consumeMyCard(g,'Consult Rich Uncle');
+  await update(ref(DB,`games/${ROOM}`),{'trade/richUncle':2});
+}
+async function trUseCL(){
+  const g=(await get(ref(DB,`games/${ROOM}`))).val();
+  await consumeMyCard(g,'Consult Lawyer');
+  await update(ref(DB,`games/${ROOM}`),{'trade/lawyer':true});
+}
+
+async function consumeMyCard(g,name){
+  const hand=JSON.parse(JSON.stringify(g.hands[MY_ID]||[]));
+  const i=hand.findIndex(c=>c.n===name);if(i!==-1)hand.splice(i,1);
+  await update(ref(DB,`games/${ROOM}`),{[`hands/${MY_ID}`]:hand});
+}
+
+async function declineTrade(){
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();const t=g.trade;
+  const isInit=MY_ID===t.init;
+  const otherName=isInit?t.tgtName:t.initName;
+  const isInvite=t.phase==='invited';
+  const up={};
+  // Politician: target declines a clean offer during negotiation
+  if(!isInit&&t.phase==='negotiating'){
+    const myP=g.players[MY_ID];
+    if(myP?.obj==='politician'){
+      const initHand=g.hands[t.init]||[];
+      const offered=(t.iCards||[]).map(uid=>initHand.find(c=>c.uid===uid)).filter(Boolean);
+      if(!offered.some(c=>c.t==='Scam')){
+        up[`players/${MY_ID}/pts`]=(myP.pts||0)+2;
+        up[`players/${MY_ID}/objTrack/decGood`]=(myP.objTrack?.decGood||0)+1;
+      }
+    }
+    // Businessman: record rejection on the initiator's data
+    const initP=g.players[t.init];
+    if(initP){
+      const rejMe={...(initP.objTrack?.rejMe||{}),[MY_ID]:true};
+      up[`players/${t.init}/objTrack/rejMe`]=rejMe;
+    }
+  }
+  const msg=isInvite
+    ?`${MY_NAME} ${MY_ID===t.tgt?'declined':'cancelled'} the trade invitation with ${otherName}.`
+    :`${MY_NAME} declined the trade with ${otherName}.`;
+  up['trade/phase']='resolved';up['trade/result']=msg;
+  const pairKey=[t.init,t.tgt].sort().join('|');
+  up[`blockedPairs/${pairKey}`]=true;
+  await update(ref(DB,`games/${ROOM}`),up);
+  await pushNotif(msg);
+}
+
+function showResult(msg){
+  setEl('tov-b',`<div class="rbox"><div style="font-size:22px;color:#c49a22;margin-bottom:10px">⚜</div><div style="font-size:13px;line-height:1.7">${msg}</div></div>`);
+  setEl('tov-f',`<button class="ab gld" onclick="G.closeTrade()">Continue</button>`);
+}
+
+async function closeTrade(){
+  const ov=document.getElementById('tov');
+  ov.style.display='none';
+  const snap=await get(ref(DB,`games/${ROOM}`));const g=snap.val();
+  if(!g.trade)return;
+  if(g.trade.phase==='resolved'){
+    await update(ref(DB,`games/${ROOM}`),{trade:null});
+  } else if((g.trade.phase==='negotiating'||g.trade.phase==='invited')&&(g.trade.init===MY_ID||g.trade.tgt===MY_ID)){
+    const otherName=MY_ID===g.trade.init?g.trade.tgtName:g.trade.initName;
+    await update(ref(DB,`games/${ROOM}`),{'trade/phase':'resolved',
+      'trade/result':`${MY_NAME} cancelled the trade with ${otherName}.`});
+    await pushNotif(`${MY_NAME} cancelled the trade.`);
+  }
+}
+
+function notify(msg){
+  const el=document.getElementById('notif');
+  if(el){el.textContent=msg;setTimeout(()=>{if(el.textContent===msg)el.textContent=''},4000);}
+}
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+async function leaveGame(){
+  if(!confirm('Leave the game? You will be marked as eliminated for other players.'))return;
+  if(gameUnsub){gameUnsub();gameUnsub=null;}
+  clearInterval(botIv);clearInterval(timerIv);
+  try{
+    const snap=await get(ref(DB,`games/${ROOM}`));
+    if(snap.exists()){
+      const g=snap.val();
+      const up={[`players/${MY_ID}/status`]:'eliminated'};
+      if(g.trade&&(g.trade.init===MY_ID||g.trade.tgt===MY_ID)){
+        up['trade/phase']='resolved';
+        up['trade/result']=`${MY_NAME} left the game.`;
+      }
+      await update(ref(DB,`games/${ROOM}`),up);
+      await pushNotif(`${MY_NAME} has left the game.`);
+    }
+  }catch(e){}
+  screen('s-lobby');
+}
+
+async function sendChat(){
+  const inp=document.getElementById('chat-inp');
+  const msg=(inp?.value||'').trim();
+  if(!msg)return;
+  inp.value='';
+  const cr=push(ref(DB,`games/${ROOM}/chats`));
+  await set(cr,{pid:MY_ID,name:MY_NAME,msg,ts:Date.now()});
+}
+
+function processChat(g){
+  const el=document.getElementById('chat-msgs');
+  if(!el)return;
+  const msgs=Object.values(g.chats||{}).sort((a,b)=>a.ts-b.ts).slice(-50);
+  const atBottom=el.scrollHeight-el.scrollTop<=el.clientHeight+30;
+  el.innerHTML=msgs.map(m=>`<div class="chat-msg"><span class="cn">${escHtml(m.name)}:</span> ${escHtml(m.msg)}</div>`).join('');
+  if(atBottom)el.scrollTop=el.scrollHeight;
+}
+
+// ── End-game objective scoring ────────────────────────────────
+function applyEndGameObjectives(players,hands,g){
+  const notes=[];
+  const pids=Object.keys(players);
+  pids.forEach(id=>{
+    const p=players[id];
+    const hand=hands[id]||[];
+    const ot=p.objTrack||{};
+
+    // ── Universal end-game card scoring ───────────────────────────
+    let cardPts=0;const cardLog=[];
+    hand.forEach(c=>{
+      if(c.epv){cardPts+=c.epv;cardLog.push(`${c.n}+${c.epv}`);}
+      if(c.isTextile){const v=c.textileUsed?2:5;cardPts+=v;cardLog.push(`Textile+${v}`);}
+    });
+    // Gov Bond: 4pts each if clean record (investor gets their own bonus instead)
+    if(p.obj!=='investor'){
+      hand.forEach(c=>{if(c.isGB&&(p.cr||0)===0){cardPts+=4;cardLog.push('GovBond+4');}});
+    }
+    if(cardPts){p.pts+=cardPts;notes.push(`${p.name} cards: +${cardPts}pts (${cardLog.join(', ')})`);}
+
+    switch(p.obj){
+      case'luxury':{
+        let b=0;hand.forEach(c=>{if(c.bg==='silver')b+=2;if(c.bg==='gold')b+=4;});
+        if(b){p.pts+=b;notes.push(`${p.name} (Luxury Enthusiast): +${b}pts`);}break;
+      }
+      case'merchant':{
+        const u=Object.keys(ot.tWith||{}).length;
+        if(u){p.pts+=u;notes.push(`${p.name} (Merchant): +${u}pts`);}break;
+      }
+      case'rebel':{
+        const eli=pids.filter(x=>x!==id&&players[x].status==='eliminated').length;
+        if(eli){const b=eli*4;p.pts+=b;notes.push(`${p.name} (Worker Rebel): +${b}pts`);}break;
+      }
+      case'monopolist':{
+        const hC=hand.some(c=>c.n==='Coal'),hS=hand.some(c=>c.n==='Steel');
+        const hO=hand.some(c=>c.n==='Oil'||c.n==='Oil Bond');
+        if(hC&&hS&&hO){p.objWin=true;notes.push(`${p.name} (Monopolist): WINS OUTRIGHT!`);}break;
+      }
+      case'thrifter':{
+        if(ot.thrift){notes.push(`${p.name} (Thrifter): +${ot.thrift}pts from trades`);}break;
+      }
+      case'politician':{
+        if(ot.decGood){notes.push(`${p.name} (Politician): +${(ot.decGood)*2}pts from declines`);}break;
+      }
+      case'cartel':{
+        if(ot.cartel){notes.push(`${p.name} (Cartel): +${(ot.cartel)*3}pts from scams`);}break;
+      }
+      case'vigilante':{
+        const cr3=g.thursdayCR||{};
+        const cr3p=Object.keys(cr3).filter(x=>x!==id);
+        if(cr3p.length>0&&cr3p.every(x=>players[x]?.status==='eliminated')){
+          p.objWin=true;notes.push(`${p.name} (Vigilante): WINS OUTRIGHT!`);
+        }break;
+      }
+      case'farmer':{
+        if(ot.agr){notes.push(`${p.name} (Farmer): +${(ot.agr)*3}pts from donations`);}break;
+      }
+      case'consumer':{
+        if(ot.iDay!==undefined){notes.push(`${p.name} (Consumer): bonus pts applied daily`);}break;
+      }
+      case'collector':{
+        let b=0;pids.forEach(x=>{if(x!==id&&(players[x].pts||0)<0)b+=Math.abs(players[x].pts);});
+        if(b){p.pts+=b;notes.push(`${p.name} (Debt Collector): +${b}pts`);}break;
+      }
+      case'barber':{
+        const days=Object.keys(ot.bDays||{}).length;
+        if(days){notes.push(`${p.name} (Barber): +${days*3}pts from target trades`);}break;
+      }
+      case'hoarder':{
+        const items=hand.filter(c=>c.t==='Item').length;
+        if(items){const b=items*2;p.pts+=b;notes.push(`${p.name} (Hoarder): +${b}pts`);}break;
+      }
+      case'hustler':{
+        if(Object.values(ot.tWith||{}).some(d=>d.length>=2)){
+          notes.push(`${p.name} (Hustler): steals already applied`);}break;
+      }
+      case'investor':{
+        let b=0;
+        hand.forEach(c=>{
+          if(c.isSk)b+=c.val||0;
+          if(c.n==='Oil Bond')b+=6;
+          if(c.isGB)b+=4;
+        });
+        if(b){p.pts+=b;notes.push(`${p.name} (Investor): +${b}pts`);}break;
+      }
+      case'immigrant':{
+        if((p.cr||0)===0&&(p.pts||0)>=15){p.objWin=true;notes.push(`${p.name} (Immigrant): WINS OUTRIGHT!`);}break;
+      }
+      case'conartist':{
+        const c=ot.conScams||0;if(c)notes.push(`${p.name} (Con Artist): +${c*4}pts from clean scams`);break;
+      }
+      case'lunatic':{
+        const kills=ot.kills||0;if(kills){const b=kills*5;p.pts+=b;notes.push(`${p.name} (Lunatic): +${b}pts from ${kills} elimination(s)`);}break;
+      }
+      case'govagent':{
+        const EVIL=['hustler','conartist','armsdealer','lunatic','cartel','rebel','assassin'];
+        const deadEvil=pids.filter(x=>EVIL.includes(players[x].obj)&&players[x].status==='eliminated').length;
+        if(deadEvil){const b=deadEvil*4;p.pts+=b;notes.push(`${p.name} (Government Agent): +${b}pts from ${deadEvil} dead evil player(s)`);}break;
+      }
+      case'armsdealer':{
+        const sold=ot.weaponsSold||0;if(sold){const b=sold*3;p.pts+=b;notes.push(`${p.name} (Arms Dealer): +${b}pts from ${sold} weapon(s) sold`);}break;
+      }
+      case'assassin':{
+        const targets=p.assassinTargets||[];
+        const deadTargets=targets.filter(tid=>players[tid]?.status==='eliminated').length;
+        if(deadTargets){const b=deadTargets*5;p.pts+=b;notes.push(`${p.name} (Assassin): +${b}pts from ${deadTargets} dead target(s)`);}break;
+      }
+      case'landlord':{
+        const nd2=ot.noTradeDays||0;if(nd2){const b=nd2*2;p.pts+=b;notes.push(`${p.name} (Landlord): +${b}pts from ${nd2} no-trade player-days`);}break;
+      }
+      case'blacksmith':{
+        const ct=ot.contracts||0;if(ct){const b=ct*3;p.pts+=b;notes.push(`${p.name} (Blacksmith): +${b}pts from ${ct} Trade card(s) in trades`);}break;
+      }
+      case'warden':{
+        const arrested=pids.filter(x=>players[x].wasArrested).length;
+        if(arrested){const b=arrested*4;p.pts+=b;notes.push(`${p.name} (Warden): +${b}pts from ${arrested} unique arrest(s)`);}break;
+      }
+      case'wholesaler':{
+        const sd=ot.soloTradeDays||0;if(sd){const b=sd*2;p.pts+=b;notes.push(`${p.name} (Wholesaler): +${b}pts from ${sd} solo-trade day(s)`);}break;
+      }
+    }
+    players[id]=p;
+  });
+
+  // Determine winners
+  const active=pids.filter(id=>players[id].status!=='eliminated');
+  const aliveWitches=active.filter(id=>players[id].isWitch);
+  const aliveOutcasts=active.filter(id=>players[id].isOutcast);
+  // Special roles win by their own conditions
+  aliveWitches.forEach(id=>{players[id].winner=true;});
+  aliveOutcasts.forEach(id=>{players[id].winner=true;});
+  // Tighten win threshold to 20% if any special role survived
+  const winThreshold=(aliveWitches.length||aliveOutcasts.length)?0.2:0.4;
+  // Regular players (not witch, not outcast)
+  const regularActive=active.filter(id=>!players[id].isWitch&&!players[id].isOutcast);
+  const regularNonObj=regularActive.filter(id=>!players[id].objWin);
+  regularNonObj.sort((a,b)=>(players[b].pts||0)-(players[a].pts||0));
+  const topN=Math.ceil(regularNonObj.length*winThreshold);
+  regularNonObj.slice(0,topN).forEach(id=>{players[id].winner=true;});
+  regularActive.filter(id=>players[id].objWin).forEach(id=>{players[id].winner=true;});
+  if(aliveWitches.length)notes.push(`🔮 Witches survived! ${aliveWitches.map(id=>players[id].name).join(', ')} win.`);
+  if(aliveOutcasts.length)notes.push(`⚔ Outcast survived! ${aliveOutcasts.map(id=>players[id].name).join(', ')} win.`);
+  if(aliveWitches.length||aliveOutcasts.length)notes.push(`Only top 20% of regular players win.`);
+  const winNames=pids.filter(id=>players[id].winner).map(id=>players[id].name);
+  if(winNames.length)notes.push(`❖ Winners: ${winNames.join(', ')}`);
+
+  return notes;
+}
+
+// ── Bot system ─────────────────────────────────────────────────
+const BOT_NAMES=['Ada','Barnaby','Cecil','Dorothy','Edmund','Florence','George','Harriet','Isaac','Jane'];
+
+async function addBot(){
+  const snap=await get(ref(DB,`games/${ROOM}`));
+  const g=snap.val();
+  const allP=Object.values(g.players||{});
+  if(allP.length>=10){notify('Room is full (10 players max)');return;}
+  const bots=allP.filter(p=>p.isBot);
+  const name=BOT_NAMES[bots.length%BOT_NAMES.length];
+  const botId='bot_'+Math.random().toString(36).slice(2,10);
+  const order=allP.length;
+  await update(ref(DB,`games/${ROOM}`),{
+    [`players/${botId}`]:{name,pts:0,cr:0,status:'active',sick:false,tradedToday:false,order,isBot:true},
+    [`hands/${botId}`]:[]
+  });
+}
+
+async function removeBot(){
+  const snap=await get(ref(DB,`games/${ROOM}`));
+  const g=snap.val();
+  const bots=Object.entries(g.players||{}).filter(([,p])=>p.isBot);
+  if(!bots.length){notify('No bots to remove');return;}
+  const [lastBotId]=bots[bots.length-1];
+  const up={};
+  up[`players/${lastBotId}`]=null;
+  up[`hands/${lastBotId}`]=null;
+  await update(ref(DB,`games/${ROOM}`),up);
+}
+
+async function pickDraftCard(uid){
+  const snap=await get(ref(DB,`games/${ROOM}`));
+  const g=snap.val();
+  const draft=(g.cardDraft||{})[MY_ID];
+  if(!draft)return;
+  const picked=draft.find(c=>c.uid===uid);
+  if(!picked)return;
+  const hand=JSON.parse(JSON.stringify(g.hands[MY_ID]||[]));
+  hand.push(picked);
+  await update(ref(DB,`games/${ROOM}`),{[`hands/${MY_ID}`]:hand,[`cardDraft/${MY_ID}`]:null});
+}
+
+async function runBotTick(){
+  if(!IS_HOST)return;
+  const snap=await get(ref(DB,`games/${ROOM}`));
+  if(!snap.exists())return;
+  const g=snap.val();
+  if(g.phase!=='playing')return;
+  // Auto-pick draft cards for bots
+  const draftEntries=Object.entries(g.cardDraft||{});
+  for(const [botId,opts] of draftEntries){
+    if(!g.players[botId]?.isBot||!opts?.length)continue;
+    const picked=opts[0|Math.random()*opts.length];
+    const botHand=JSON.parse(JSON.stringify(g.hands[botId]||[]));
+    botHand.push(picked);
+    await update(ref(DB,`games/${ROOM}`),{[`hands/${botId}`]:botHand,[`cardDraft/${botId}`]:null});
+    return;
+  }
+  if(g.trade){
+    const t=g.trade;
+    const tgtIsBot=g.players[t.tgt]?.isBot;
+    const initIsBot=g.players[t.init]?.isBot;
+    if(t.phase==='invited'&&tgtIsBot){
+      // Auto-accept the invitation on behalf of the bot
+      await update(ref(DB,`games/${ROOM}`),{'trade/phase':'negotiating'});
+      return;
+    }
+    if(t.phase==='negotiating'){
+      // Step 1: ensure bot has written its lock
+      if(tgtIsBot&&!t.tLocked){await botRespondToTrade(g);}
+      else if(initIsBot&&!t.iLocked){
+        await update(ref(DB,`games/${ROOM}`),{'trade/iLocked':true});
+      }
+      // Step 2: always re-read and execute if both locked (same tick as lock write)
+      if(tgtIsBot||initIsBot){
+        const freshSnap=await get(ref(DB,`games/${ROOM}`));
+        const freshG=freshSnap.val();
+        if(freshG.trade?.phase==='negotiating'&&freshG.trade?.iLocked&&freshG.trade?.tLocked){
+          await executeTradeNow(freshG);
+        }
+      }
+      return;
+    }
+  }
+  if(!g.trade){
+    const activeBots=Object.entries(g.players||{})
+      .filter(([,p])=>p.isBot&&p.status==='active'&&!p.tradedToday);
+    if(activeBots.length&&Math.random()<0.35){
+      const [botId]=activeBots[Math.floor(Math.random()*activeBots.length)];
+      await botInitiateTrade(g,botId);
+    }
+  }
+}
+
+async function botRespondToTrade(g){
+  const t=g.trade;
+  const botId=t.tgt;
+  const bot=g.players[botId];
+  const botHand=JSON.parse(JSON.stringify(g.hands[botId]||[]));
+  const iHand=g.hands[t.init]||[];
+  const offered=(t.iCards||[]).map(uid=>iHand.find(c=>c.uid===uid)).filter(Boolean);
+  const offerVal=offered.reduce((s,c)=>s+(c.r||0),0)+(t.iPoints||0);
+  if(offerVal<=0&&Math.random()<0.4){
+    const pairKey=[t.init,t.tgt].sort().join('|');
+    await update(ref(DB,`games/${ROOM}`),{'trade/phase':'resolved','trade/result':`${bot.name} declined.`,[`blockedPairs/${pairKey}`]:true});
+    await pushNotif(`${bot.name} declined.`);
+    return;
+  }
+  const tradeable=botHand.filter(c=>c.t!=='Action');
+  const tOffer=tradeable.length&&Math.random()<0.5?[tradeable[0|Math.random()*tradeable.length]]:[];
+  // Lock in bot's response; if initiator already locked, execute now
+  await update(ref(DB,`games/${ROOM}`),{
+    'trade/tCards':tOffer.map(c=>c.uid),'trade/tPoints':0,'trade/tLocked':true
+  });
+}
+
+async function botInitiateTrade(g,botId){
+  const bot=g.players[botId];
+  const botHand=g.hands[botId]||[];
+  const blocked=g.blockedPairs||{};
+  const notBlocked=id=>!blocked[[botId,id].sort().join('|')];
+  const humans=Object.entries(g.players||{})
+    .filter(([id,p])=>!p.isBot&&p.status==='active'&&id!==botId&&notBlocked(id));
+  const otherBots=Object.entries(g.players||{})
+    .filter(([id,p])=>p.isBot&&p.status==='active'&&id!==botId&&!p.tradedToday&&notBlocked(id));
+  // Prefer humans (80%), fall back to other bots if no humans or unlucky
+  const useBot=(!humans.length)||(otherBots.length&&Math.random()<0.2);
+  const pool=useBot?otherBots:humans;
+  if(!pool.length)return;
+  const [targetId,target]=pool[0|Math.random()*pool.length];
+  if((bot.tradeAttemptsToday||0)>=3)return;
+  const tradeable=botHand.filter(c=>c.t!=='Action');
+  if(!tradeable.length)return;
+  const numCards=Math.min(tradeable.length,Math.random()<0.3?2:1);
+  const offered=[...tradeable].sort(()=>Math.random()-.5).slice(0,numCards);
+  await update(ref(DB,`games/${ROOM}`),{[`players/${botId}/tradeAttemptsToday`]:(bot.tradeAttemptsToday||0)+1,trade:{
+    init:botId,initName:bot.name,
+    tgt:targetId,tgtName:target.name,
+    phase:'invited',
+    iCards:offered.map(c=>c.uid),iPoints:0,
+    tCards:[],tPoints:0,
+    iLocked:false,tLocked:false,
+    revealed:{},richUncle:0,lawyer:false,result:null
+  }});
+  await pushNotif(`${bot.name} is proposing a trade with ${target.name}!`);
+}
+
+// ── Expose to HTML onclick attrs ───────────────────────────────
+window.G={
+  initFirebase,createRoom,joinRoom,startGame,
+  hostNextDay,useCard,openTrade,fireCrossbow,showXBPicker,showPoisonPicker,poisonPlayer,
+  acceptInvite,declineTrade,lockIn,closeTrade,
+  trUseInt,trUseIns,trUsePol,trUseCM,trUseCU,trUseCL,trUseDisc,trUseInteg,trUseKnife,
+  showCratePicker,fillCrate,showCALPicker,useClassAction,
+  _toggleI,_adjIP,_toggleT,_adjTP,
+  addBot,removeBot,
+  leaveGame,sendChat,sendTradeChat,
+  pickDraftCard
+};
+initFirebase();
+</script>
+</body>
+</html>
